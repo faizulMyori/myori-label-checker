@@ -11,7 +11,7 @@ i18n.use(initReactI18next).init({
         titleInventoryPage: "Inventory",
         titleProductionPage: "Production",
         titleHistoryPage: "History",
-        titleSettingPage: "Setting",
+        titleSettingPage: "Settings",
       },
     },
     "pt-BR": {

@@ -6,8 +6,9 @@ export default function SettingPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-1 flex-col items-center justify-center gap-2">
+    <div className="flex h-full flex-col p-4">
+      <div className="flex flex-1 flex-col gap-2">
+        <span className="text-2xl font-semibold leading-none tracking-tight pt-8">Settings</span>
 
       </div>
       <Footer />

@@ -9,7 +9,7 @@ export default function HomePage() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col  p-4">
       <div className="flex flex-1 flex-col items-center justify-center gap-2">
         {/* <InitialIcons /> */}
         <img src=".../assets/images/logo.png" alt="" />
