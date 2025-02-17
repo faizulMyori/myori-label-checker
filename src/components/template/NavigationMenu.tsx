@@ -23,9 +23,30 @@ export default function NavigationMenu() {
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link to="/second-page">
+          <Link to="/inventory">
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-              {t("titleSecondPage")}
+              {t("titleInventoryPage")}
+            </NavigationMenuLink>
+          </Link>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <Link to="/production">
+            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+              {t("titleProductionPage")}
+            </NavigationMenuLink>
+          </Link>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <Link to="/history">
+            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+              {t("titleHistoryPage")}
+            </NavigationMenuLink>
+          </Link>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <Link to="/setting">
+            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+              {t("titleSettingPage")}
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>

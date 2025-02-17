@@ -6,14 +6,17 @@ i18n.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
-        appName: "electron-shadcn",
-        titleHomePage: "Home Page",
-        titleSecondPage: "Second Page",
+        appName: "MyORI Label Checker",
+        titleHomePage: "Dashboard",
+        titleInventoryPage: "Inventory",
+        titleProductionPage: "Production",
+        titleHistoryPage: "History",
+        titleSettingPage: "Setting",
       },
     },
     "pt-BR": {
       translation: {
-        appName: "electron-shadcn",
+        appName: "MyORI Label Checker",
         titleHomePage: "Página Inicial",
         titleSecondPage: "Segunda Página",
       },
