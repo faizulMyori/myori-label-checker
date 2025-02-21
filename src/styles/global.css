@@ -47,14 +47,17 @@
     from {
       height: 0;
     }
+
     to {
       height: var(--radix-accordion-content-height);
     }
   }
+
   @keyframes accordion-up {
     from {
       height: var(--radix-accordion-content-height);
     }
+
     to {
       height: 0;
     }
@@ -64,10 +67,12 @@
 @utility container {
   margin-inline: auto;
   padding-inline: 2rem;
-  @media (width >= --theme(--breakpoint-sm)) {
+
+  @media (width >=--theme(--breakpoint-sm)) {
     max-width: none;
   }
-  @media (width >= 1400px) {
+
+  @media (width >=1400px) {
     max-width: 1400px;
   }
 }
@@ -78,6 +83,7 @@
 
     src: url("../assets/fonts/geist/geist.ttf") format("truetype");
   }
+
   @font-face {
     font-family: "Geist Mono";
     font-display: swap;
@@ -92,6 +98,7 @@
 
     src: url("../assets/fonts/tomorrow/tomorrow-regular.ttf") format("truetype");
   }
+
   @font-face {
     font-family: "Tomorrow";
     font-weight: 400;
@@ -99,6 +106,7 @@
 
     src: url("../assets/fonts/tomorrow/tomorrow-italic.ttf") format("truetype");
   }
+
   @font-face {
     font-family: "Tomorrow";
     font-weight: 700;
@@ -106,6 +114,7 @@
 
     src: url("../assets/fonts/tomorrow/tomorrow-bold.ttf") format("truetype");
   }
+
   @font-face {
     font-family: "Tomorrow";
     font-weight: 700;
@@ -183,13 +192,16 @@
   * {
     @apply m-0 border-border p-0;
   }
+
   body {
     @apply overflow-hidden bg-background text-foreground;
   }
+
   .draglayer {
     @apply bg-background;
     -webkit-app-region: drag;
   }
+
   button {
     @apply cursor-pointer;
   }

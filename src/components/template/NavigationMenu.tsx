@@ -64,7 +64,6 @@ export default function NavigationMenu() {
           </Link>
         </NavigationMenuItem>
       </NavigationMenuList>
-      <ToggleTheme />
     </NavigationMenuBase>
   );
 }
