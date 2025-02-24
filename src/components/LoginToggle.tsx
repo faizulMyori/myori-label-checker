@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectGroup, SelectTrigger, SelectValue } from "./ui/select";
 import { Input } from "./ui/input";
-import { FormDialog } from "./ui/FormDialog";
+import { FormDialog } from "./FormDialog";
 
 export default function LoginToggle() {
   const [openLogin, setOpenLogin] = useState(false);

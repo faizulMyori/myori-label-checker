@@ -1,14 +1,13 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow } from "electron";
 import registerListeners from "./helpers/ipc/listeners-register";
 import path from "path";
 import {
   installExtension,
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
-import sqlite, {
-  executeQuery,
-  setdbPath,
-} from "sqlite-electron";
+import {
+  initializeDatabase,
+} from "./helpers/db_helpers";
 
 const inDevelopment = process.env.NODE_ENV === "development";
 
@@ -17,6 +16,9 @@ function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    maximizable: false,
+    fullscreen: true,
+    autoHideMenuBar: true,
     webPreferences: {
       devTools: inDevelopment,
       contextIsolation: true,
@@ -43,60 +45,6 @@ async function installExtensions() {
   } catch {
     console.error("Failed to install extensions");
   }
-}
-
-// Function to set database path upon app ready
-async function initializeDatabase() {
-  try {
-    const dbPath = "./database.db"; // Replace with your actual database path
-    const isUri = false; // Set to true if dbPath is a URI
-    await setdbPath(dbPath, isUri);
-    initializeBatchesTable();
-    initializeUsersTable();
-    initializeProductsTable();
-    console.log("Database initialized successfully");
-  } catch (error) {
-    console.error("Failed to initialize database", error);
-  }
-}
-
-async function initializeUsersTable() {
-  const sql = `
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        password TEXT NOT NULL,
-        created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-  await executeQuery(sql);
-}
-
-async function initializeBatchesTable() {
-  const sql = `
-      CREATE TABLE IF NOT EXISTS batches (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        batch_no TEXT NOT NULL,
-        product_id TEXT NOT NULL,
-        timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-  await executeQuery(sql);
-}
-
-async function initializeProductsTable() {
-  const sql = `
-      CREATE TABLE IF NOT EXISTS products (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        brand TEXT NOT NULL,
-        model TEXT NOT NULL,
-        type TEXT NOT NULL,
-        rating TEXT NOT NULL,
-        size TEXT NOT NULL,
-        timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-  await executeQuery(sql);
 }
 
 app.whenReady()

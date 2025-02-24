@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { ArrowUpDown } from 'lucide-react'
-import TableWithPagination from '@/components/ui/TableWithPagination'
+import TableWithPagination from '@/components/TableWithPagination'
 import { Button } from '@/components/ui/button'
 import Footer from '@/components/template/Footer'
 

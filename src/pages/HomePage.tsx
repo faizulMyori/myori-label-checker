@@ -12,7 +12,7 @@ export default function HomePage() {
     <div className="flex h-full flex-col  p-4">
       <div className="flex flex-1 flex-col items-center justify-center gap-2">
         {/* <InitialIcons /> */}
-        <img src=".../assets/images/logo.png" alt="" />
+        <img className="w-32 mb-4" src="src/assets/images/logo.png" alt="" />
         <span>
           <h1 className="font-mono text-4xl font-bold">{t("appName")}</h1>
           {/* <p className="text-end text-sm uppercase text-muted-foreground" data-testid="pageTitle">
