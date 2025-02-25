@@ -8,7 +8,8 @@ import {
   DB_EXECUTE_MANY,
   DB_EXECUTE_SCRIPT,
   DB_LOAD_EXTENSION,
-  DB_BACKUP
+  DB_BACKUP,
+  DB_LOGIN
 } from "./db-channels";
 
 import sqlite, {
@@ -24,73 +25,13 @@ import sqlite, {
 } from "sqlite-electron";
 
 export function addDBEventListeners() {
-  ipcMain.handle(DB_SET_DB_PATH, async (event, dbPath, isUri) => {
-    try {
-      return await setdbPath(dbPath, isUri);
-    } catch (error) {
-      return error;
-    }
-  });
+  ipcMain.handle(DB_LOGIN, async (event, data) => {
+    console.log(data.username)
+    let username:string = data.username;
+    let password:string = data.password;
 
-  ipcMain.handle(DB_EXECUTE_QUERY, async (event, query, value) => {
     try {
-      return await executeQuery(query, value);
-    } catch (error) {
-      return error;
-    }
-  });
-
-  ipcMain.handle(DB_FETCH_ONE, async (event, query, value) => {
-    try {
-      return await fetchOne(query, value);
-    } catch (error) {
-      return error;
-    }
-  });
-
-  ipcMain.handle(DB_FETCH_MANY, async (event, query, size, value) => {
-    try {
-      return await fetchMany(query, size, value);
-    } catch (error) {
-      return error;
-    }
-  });
-
-  ipcMain.handle(DB_FETCH_ALL, async (event, query, value) => {
-    try {
-      return await fetchAll(query, value);
-    } catch (error) {
-      return error;
-    }
-  });
-
-  ipcMain.handle(DB_EXECUTE_MANY, async (event, query, values) => {
-    try {
-      return await executeMany(query, values);
-    } catch (error) {
-      return error;
-    }
-  });
-
-  ipcMain.handle(DB_EXECUTE_SCRIPT, async (event, scriptpath) => {
-    try {
-      return await executeScript(scriptpath);
-    } catch (error) {
-      return error;
-    }
-  });
-
-  ipcMain.handle(DB_LOAD_EXTENSION, async (event, path) => {
-    try {
-      return await load_extension(path);
-    } catch (error) {
-      return error;
-    }
-  });
-
-  ipcMain.handle(DB_BACKUP, async (event, target, pages, name, sleep) => {
-    try {
-      return await backup(target, Number(pages), name, Number(sleep));
+      return await fetchOne("SELECT * FROM users WHERE username = ? AND password = ?", [username, password]);
     } catch (error) {
       return error;
     }

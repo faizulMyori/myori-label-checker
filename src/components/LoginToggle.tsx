@@ -8,16 +8,20 @@ import { FormDialog } from "./FormDialog";
 
 export default function LoginToggle() {
   const [openLogin, setOpenLogin] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ username: "", password: "" });
 
   const toggleLogin = () => {
     setOpenLogin(!openLogin);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Call your login API here
-    console.log(form);
+    try {
+      const login = await window.sqlite.db_login(form.username, form.password);
+      console.log(login)
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

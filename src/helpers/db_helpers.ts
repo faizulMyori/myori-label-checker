@@ -1,10 +1,9 @@
-import { executeQuery, setdbPath } from "sqlite-electron";
+import sqlite, { executeQuery, setdbPath, fetchOne  } from "sqlite-electron";
 
-// Function to set database path upon app ready
 export async function initializeDatabase() {
   try {
-    const dbPath = "./database.db"; // Replace with your actual database path
-    const isUri = false; // Set to true if dbPath is a URI
+    const dbPath = "./database.db";
+    const isUri = false;
     await setdbPath(dbPath, isUri);
     initializeBatchesTable();
     initializeUsersTable();
@@ -17,7 +16,7 @@ export async function initializeDatabase() {
 }
 
 async function initializeUsersTable() {
-    const sql = `
+  const sql = `
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           username TEXT NOT NULL,
@@ -25,11 +24,23 @@ async function initializeUsersTable() {
           created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;
-    await executeQuery(sql);
+  await executeQuery(sql);
+
+  const checkAdminSql = `
+        SELECT 1 FROM users WHERE username = 'admin';
+      `;
+  const adminExists = await fetchOne(checkAdminSql);
+
+  if (!adminExists) {
+    const insertAdminSql = `
+          INSERT INTO users (username, password) VALUES ('admin', 'admin');
+        `;
+    await executeQuery(insertAdminSql);
+  }
 }
-  
+
 async function initializeBatchesTable() {
-    const sql = `
+  const sql = `
         CREATE TABLE IF NOT EXISTS batches (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           batch_no TEXT NOT NULL,
@@ -37,11 +48,11 @@ async function initializeBatchesTable() {
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;
-    await executeQuery(sql);
+  await executeQuery(sql);
 }
-  
+
 async function initializeProductsTable() {
-    const sql = `
+  const sql = `
         CREATE TABLE IF NOT EXISTS products (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           brand TEXT NOT NULL,
@@ -52,11 +63,11 @@ async function initializeProductsTable() {
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;
-    await executeQuery(sql);
+  await executeQuery(sql);
 }
 
 async function initializeLabelsTable() {
-    const sql = `
+  const sql = `
         CREATE TABLE IF NOT EXISTS labels (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           serial TEXT NOT NULL,
@@ -67,5 +78,5 @@ async function initializeLabelsTable() {
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;
-    await executeQuery(sql);
+  await executeQuery(sql);
 }

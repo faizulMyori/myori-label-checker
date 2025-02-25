@@ -7,3 +7,4 @@ export const DB_EXECUTE_MANY = "db:executeMany";
 export const DB_EXECUTE_SCRIPT = "db:executeScript";
 export const DB_LOAD_EXTENSION = "db:loadExtension";
 export const DB_BACKUP = "db:backup";
+export const DB_LOGIN = "db:login";

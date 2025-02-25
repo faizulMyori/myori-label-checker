@@ -18,7 +18,12 @@ interface ElectronWindow {
   close: () => Promise<void>;
 }
 
+interface sqlite {
+  db_login: (username: any, password: any) => Promise<void>;
+}
+
 declare interface Window {
   themeMode: ThemeModeContext;
   electronWindow: ElectronWindow;
+  sqlite: sqlite;
 }
