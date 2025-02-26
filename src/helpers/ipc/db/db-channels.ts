@@ -1,10 +1,6 @@
-export const DB_SET_DB_PATH = "db:setDbPath";
-export const DB_EXECUTE_QUERY = "db:executeQuery";
-export const DB_FETCH_ONE = "db:fetchOne";
-export const DB_FETCH_MANY = "db:fetchMany";
-export const DB_FETCH_ALL = "db:fetchAll";
-export const DB_EXECUTE_MANY = "db:executeMany";
-export const DB_EXECUTE_SCRIPT = "db:executeScript";
-export const DB_LOAD_EXTENSION = "db:loadExtension";
-export const DB_BACKUP = "db:backup";
 export const DB_LOGIN = "db:login";
+export const DB_DELETE_PRODUCT = "db:deleteProduct";
+export const DB_UPDATE_PRODUCT = "db:updateProduct";
+export const DB_CREATE_PRODUCT = "db:createProduct";
+export const DB_GET_PRODUCTS = "db:getProducts";
+export const DB_SEARCH_PRODUCTS = "db:searchProducts";

@@ -1,15 +1,11 @@
 import { BrowserWindow, ipcMain } from "electron";
 import {
-  DB_SET_DB_PATH,
-  DB_EXECUTE_QUERY,
-  DB_FETCH_ONE,
-  DB_FETCH_MANY,
-  DB_FETCH_ALL,
-  DB_EXECUTE_MANY,
-  DB_EXECUTE_SCRIPT,
-  DB_LOAD_EXTENSION,
-  DB_BACKUP,
-  DB_LOGIN
+  DB_LOGIN,
+  DB_DELETE_PRODUCT,
+  DB_UPDATE_PRODUCT,
+  DB_CREATE_PRODUCT,
+  DB_GET_PRODUCTS,
+  DB_SEARCH_PRODUCTS,
 } from "./db-channels";
 
 import sqlite, {
@@ -47,7 +43,7 @@ export function addDBEventListeners() {
     }
   });
 
-  ipcMain.handle('db:createProduct', async (event, data) => {
+  ipcMain.handle(DB_CREATE_PRODUCT, async (event, data) => {
     try {
       return await executeQuery("INSERT INTO products (brand, model, type, rating, size) VALUES (?, ?, ?, ?, ?)", [data.brand, data.model, data.type, data.rating, data.size]);
     } catch (error) {
@@ -55,7 +51,7 @@ export function addDBEventListeners() {
     }
   });
 
-  ipcMain.handle('db:getProducts', async (event, data) => {
+  ipcMain.handle(DB_GET_PRODUCTS, async (event, data) => {
     try {
       return await fetchAll("SELECT * FROM products");
     } catch (error) {
@@ -63,7 +59,7 @@ export function addDBEventListeners() {
     }
   });
 
-  ipcMain.handle('db:searchProducts', async (event, data) => {
+  ipcMain.handle(DB_SEARCH_PRODUCTS, async (event, data) => {
     try {
       return await fetchAll("SELECT * FROM products WHERE brand LIKE ? OR model LIKE ? OR type LIKE ? OR rating LIKE ? OR size LIKE ?", [`%${data}%`, `%${data}%`, `%${data}%`, `%${data}%`, `%${data}%`]);
     } catch (error) {
@@ -71,7 +67,7 @@ export function addDBEventListeners() {
     }
   });
 
-  ipcMain.handle('db:updateProduct', async (event, data) => {
+  ipcMain.handle(DB_UPDATE_PRODUCT, async (event, data) => {
     try {
       return await executeQuery("UPDATE products SET brand = ?, model = ?, type = ?, rating = ?, size = ? WHERE id = ?", [data.brand, data.model, data.type, data.rating, data.size, data.id]);
     } catch (error) {
@@ -79,7 +75,7 @@ export function addDBEventListeners() {
     }
   });
 
-  ipcMain.handle('db:deleteProduct', async (event, data) => {
+  ipcMain.handle(DB_DELETE_PRODUCT, async (event, data) => {
     try {
       return await executeQuery("DELETE FROM products WHERE id = ?", [data]);
     } catch (error) {

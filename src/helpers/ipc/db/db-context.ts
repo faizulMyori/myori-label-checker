@@ -1,24 +1,20 @@
 import {
-  DB_SET_DB_PATH,
-  DB_EXECUTE_QUERY,
-  DB_FETCH_ONE,
-  DB_FETCH_MANY,
-  DB_FETCH_ALL,
-  DB_EXECUTE_MANY,
-  DB_EXECUTE_SCRIPT,
-  DB_LOAD_EXTENSION,
-  DB_BACKUP,
-  DB_LOGIN
+  DB_LOGIN,
+  DB_DELETE_PRODUCT,
+  DB_UPDATE_PRODUCT,
+  DB_CREATE_PRODUCT,
+  DB_GET_PRODUCTS,
+  DB_SEARCH_PRODUCTS,
 } from "./db-channels";
 
 export function exposeDBContext() {
   const { contextBridge, ipcRenderer } = window.require("electron");
   contextBridge.exposeInMainWorld("sqlite", {
     db_login: (username: any, password: any) => ipcRenderer.invoke(DB_LOGIN, {username, password }),
-    create_product: (data: any) => ipcRenderer.invoke('db:createProduct', data),
-    get_products: () => ipcRenderer.invoke('db:getProducts'),
-    search_products: (query: string) => ipcRenderer.invoke('db:searchProducts', query),
-    update_product: (data: any) => ipcRenderer.invoke('db:updateProduct', data),
-    delete_product: (id: number) => ipcRenderer.invoke('db:deleteProduct', id),
+    create_product: (data: any) => ipcRenderer.invoke(DB_CREATE_PRODUCT, data),
+    get_products: () => ipcRenderer.invoke(DB_GET_PRODUCTS),
+    search_products: (query: string) => ipcRenderer.invoke(DB_SEARCH_PRODUCTS, query),
+    update_product: (data: any) => ipcRenderer.invoke(DB_UPDATE_PRODUCT, data),
+    delete_product: (id: number) => ipcRenderer.invoke(DB_DELETE_PRODUCT, id),
   });
 }

@@ -1,13 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { Archive, ArrowUpDown, Filter, Package, Tags } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
 import TableWithPagination from '@/components/TableWithPagination'
-import { Button } from '@/components/ui/button'
 import Footer from '@/components/template/Footer'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { FormDialog } from '@/components/FormDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
-
 
 export default function Index() {
   const [products, setProducts] = useState({
@@ -22,8 +19,6 @@ export default function Index() {
   })
 
   const [formType, setFormType] = useState<'create' | 'update'>('create')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-  const [sortColumn, setSortColumn] = useState<string>('variant_id')
   const [form, setForm] = useState({
     id: 0,
     model: '',
@@ -34,19 +29,6 @@ export default function Index() {
   });
   const [openForm, setOpenForm] = useState(false);
   const [deleteDialog, setOpenDeleteDialog] = useState(false);
-  // const { data, setData, post, processing, errors, reset } = useForm({
-  //     id: '',
-  //     title: '',
-  //     desc: '',
-  //     type: '',
-  //     status: '0'
-  // })
-
-  // useEffect(() => {
-  //     if (!openNews) {
-  //         reset()
-  //     }
-  // }, [openNews])
 
   const columns = [
     {
@@ -88,8 +70,6 @@ export default function Index() {
       permission: 'can:update:products',
       label: 'Update',
       onClick: (item: any) => {
-        // setData(item)
-        // setOpenNews(true)
         setForm(item)
         setOpenForm(true)
         setFormType('update')
@@ -124,8 +104,6 @@ export default function Index() {
   }
 
   const handleAdd = (e: React.MouseEvent) => {
-    // reset()
-    // setOpenNews(true)
     setOpenForm(true)
     setFormType('create')
   }
@@ -157,7 +135,6 @@ export default function Index() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // const url = formType === 'create' ? '/products/create' : '/products/update'
 
     try {
       if (formType === 'create') {
@@ -165,53 +142,16 @@ export default function Index() {
         console.log(submitData)
         if (submitData) {
           setOpenForm(false);
-          // toast({
-          //   title: `Product Created`,
-          //   description: new Date().toLocaleDateString("en-GB"),
-          // })
         }
       } else {
         const submitData: any = await window.sqlite.update_product(form);
         if (submitData) {
           setOpenForm(false);
-          // toast({
-          //   title: `Product Updated`,
-          //   description: new Date().toLocaleDateString("en-GB"),
-          // })
         }
       }
     } catch (error) {
       console.log(error)
     }
-    // post(url, {
-    //     onSuccess: (data: any) => {
-    //         setOpenNews(false)
-    //         toast({
-    //             title: `News ${formType === 'create' ? 'Created' : 'Updated'}`,
-    //             description: new Date().toLocaleDateString("en-GB"),
-    //         })
-    //     },
-    //     onError: (err: any) => {
-    //         console.log(err)
-    //     }
-    // })
-  }
-
-  const handleSort = (column: string) => {
-    const newDirection = column === sortColumn && sortDirection === 'asc' ? 'desc' : 'asc'
-    setSortDirection(newDirection)
-    setSortColumn(column)
-    // router.get(
-    //     '/products',
-    //     {
-    //         sort: column,
-    //         order: newDirection
-    //     },
-    //     {
-    //         replace: true,
-    //         preserveState: true,
-    //     }
-    // )
   }
 
   return (
