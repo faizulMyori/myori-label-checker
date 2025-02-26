@@ -20,6 +20,11 @@ interface ElectronWindow {
 
 interface sqlite {
   db_login: (username: any, password: any) => Promise<void>;
+  create_product: (data: any) => Promise<void>;
+  get_products: () => Promise<void>;
+  search_products: (query: string) => Promise<void>;
+  update_product: (data: any) => Promise<void>;
+  delete_product: (id: any) => Promise<void>;
 }
 
 declare interface Window {

@@ -275,7 +275,7 @@ export default function TableWithPagination({
                         </div>
                     </div>
                 </CardContent>
-                <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
+                {/* <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
                     <div className="text-xs text-muted-foreground">
                         Showing <strong>{pagination.from}-{pagination.to}</strong> of{" "}
                         <strong>{pagination.total}</strong> {title.toLowerCase()}
@@ -308,7 +308,7 @@ export default function TableWithPagination({
                             </PaginationItem>
                         </PaginationContent>
                     </Pagination>
-                </CardFooter>
+                </CardFooter> */}
             </Card>
         </>
     )

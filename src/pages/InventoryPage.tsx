@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Archive, ArrowUpDown, Filter, Package, Tags } from 'lucide-react'
 import TableWithPagination from '@/components/TableWithPagination'
 import { Button } from '@/components/ui/button'
@@ -6,14 +6,34 @@ import Footer from '@/components/template/Footer'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { FormDialog } from '@/components/FormDialog'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 
-export default function Index({ products }: any) {
+export default function Index() {
+  const [products, setProducts] = useState({
+    data: [],
+    total: 0,
+    from: 0,
+    to: 0,
+    per_page: 0,
+    current_page: 0,
+    next_page_url: null,
+    prev_page_url: null,
+  })
+
   const [formType, setFormType] = useState<'create' | 'update'>('create')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [sortColumn, setSortColumn] = useState<string>('variant_id')
-  const [form, setForm] = useState({ });
+  const [form, setForm] = useState({
+    id: 0,
+    model: '',
+    type: '',
+    rating: '',
+    size: '',
+    brand: '',
+  });
   const [openForm, setOpenForm] = useState(false);
+  const [deleteDialog, setOpenDeleteDialog] = useState(false);
   // const { data, setData, post, processing, errors, reset } = useForm({
   //     id: '',
   //     title: '',
@@ -30,45 +50,35 @@ export default function Index({ products }: any) {
 
   const columns = [
     {
-      key: 'title',
-      label: <Button
-        variant="ghost"
-        onClick={() => handleSort('title')}
-      >
-        Title
-        < ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>,
+      key: 'model',
+      label: 'Model',
       hidden: false,
       render: (item: any) => (
-        item.title
+        item.model
       )
     },
     {
-      key: 'updated_at',
-      style: 'hidden md:table-cell',
-      label: <Button
-        variant="ghost"
-        onClick={() => handleSort('updated_at')}
-      >
-        Updated At
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>,
+      key: 'type',
+      label: 'Type',
       hidden: false,
       render: (item: any) => (
-        new Date(item.updated_at).toLocaleDateString("en-GB")
+        item.type
       )
     },
     {
-      key: 'notify',
-      label: 'Notify',
+      key: 'rating',
+      label: 'Rating',
       hidden: false,
       render: (item: any) => (
-        item.status === '0' ? (
-          <Button size="sm" onClick={(e) => {
-            e.preventDefault()
-            // handleNotify(item.id)
-          }}>Notify</Button>
-        ) : 'Notified'
+        item.rating
+      )
+    },
+    {
+      key: 'size',
+      label: 'Size (l)',
+      hidden: false,
+      render: (item: any) => (
+        item.size
       )
     },
   ]
@@ -80,6 +90,8 @@ export default function Index({ products }: any) {
       onClick: (item: any) => {
         // setData(item)
         // setOpenNews(true)
+        setForm(item)
+        setOpenForm(true)
         setFormType('update')
       },
     },
@@ -87,14 +99,24 @@ export default function Index({ products }: any) {
       permission: 'can:delete:products',
       label: 'Delete',
       onClick: (item: any) => {
-        // setData(item)
-        // setOpenDeleteDialog(true)
+        setForm(item)
+        setOpenDeleteDialog(true)
       },
     },
   ]
 
   const handleSearch = (query: string) => {
-    // router.get('/products', { q: query }, { preserveState: true })
+    try {
+      window.sqlite.search_products(query).then((d: any) => {
+        console.log(d)
+        setProducts({
+          ...products,
+          data: d,
+        })
+      })
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   const handlePageChange = (url: string) => {
@@ -109,21 +131,58 @@ export default function Index({ products }: any) {
   }
 
   const handleConfirmDelete = () => {
-    // post(`/products/destroy`, {
-    //     onSuccess: () => {
-    //         setOpenDeleteDialog(false)
-    //         toast({
-    //             title: "News Deleted",
-    //             description: new Date().toLocaleDateString("en-GB"),
-    //         })
-    //     },
-    // })
+   try {
+     window.sqlite.delete_product(form.id).then((d: any) => {
+       setOpenDeleteDialog(false)
+     })
+   } catch (error) {
+     console.log(error)
+   }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const url = formType === 'create' ? '/products/create' : '/products/update'
+  useEffect(() => {
+    try {
+      window.sqlite.get_products().then((d: any) => {
+        setProducts({
+          ...products,
+          data: d,
+        })
 
+        console.log(products)
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    // const url = formType === 'create' ? '/products/create' : '/products/update'
+
+    try {
+      if (formType === 'create') {
+        const submitData: any = await window.sqlite.create_product(form);
+        console.log(submitData)
+        if (submitData) {
+          setOpenForm(false);
+          // toast({
+          //   title: `Product Created`,
+          //   description: new Date().toLocaleDateString("en-GB"),
+          // })
+        }
+      } else {
+        const submitData: any = await window.sqlite.update_product(form);
+        if (submitData) {
+          setOpenForm(false);
+          // toast({
+          //   title: `Product Updated`,
+          //   description: new Date().toLocaleDateString("en-GB"),
+          // })
+        }
+      }
+    } catch (error) {
+      console.log(error)
+    }
     // post(url, {
     //     onSuccess: (data: any) => {
     //         setOpenNews(false)
@@ -156,8 +215,8 @@ export default function Index({ products }: any) {
   }
 
   return (
-    <div className="flex h-full flex-col p-4">
-      <div className="flex flex-1 flex-col gap-2">
+    <div className="flex h-full flex-col p-4 overflow-y-auto scrollbar w-full">
+      <div className="flex flex-1 flex-col gap-2 pb-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Products</h2>
         </div>
@@ -191,10 +250,21 @@ export default function Index({ products }: any) {
             setOpenForm={setOpenForm}
             openDialog={openForm}
             setConfirmForm={handleSubmit}
-            title={`Form`}
+            title={`Create Product`}
             forms={<Form data={form} setData={setForm} />}
             processing={false}
             size='lg:max-w-3xl'
+          />
+        )
+      }
+
+      {
+        deleteDialog && (
+          <ConfirmDialog
+            open={deleteDialog}
+            setConfirm={handleConfirmDelete}
+            title="Confirm to logout?"
+            setOpen={setOpenDeleteDialog}
           />
         )
       }
@@ -215,26 +285,63 @@ function Form({ data, setData }: { data: any; setData: any }) {
   return (
     <>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="username" className="text-right">
-          Username
+        <Label htmlFor="brand" className="text-right">
+          Brand
         </Label>
         <Input
-          id="username"
-          placeholder="Enter your username"
+          id="brand"
+          placeholder="Enter Brand"
           className="col-span-3"
           onChange={updateInputValue}
-          value={data.username ?? ""}
+          value={data.brand ?? ""}
         />
-        <Label htmlFor="password" className="text-right">
-          Password
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="model" className="text-right">
+          Model
         </Label>
         <Input
-          id="password"
-          placeholder="Enter your password"
+          id="model"
+          placeholder="Enter model"
           className="col-span-3"
-          type="password"
           onChange={updateInputValue}
-          value={data.password ?? ""}
+          value={data.model ?? ""}
+        />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="type" className="text-right">
+          Type
+        </Label>
+        <Input
+          id="type"
+          placeholder="Enter type"
+          className="col-span-3"
+          onChange={updateInputValue}
+          value={data.type ?? ""}
+        />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="rating" className="text-right">
+          Rating
+        </Label>
+        <Input
+          id="rating"
+          placeholder="Enter rating"
+          className="col-span-3"
+          onChange={updateInputValue}
+          value={data.rating ?? ""}
+        />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="size" className="text-right">
+          Size (l)
+        </Label>
+        <Input
+          id="size"
+          placeholder="Enter size"
+          className="col-span-3"
+          onChange={updateInputValue}
+          value={data.size ?? ""}
         />
       </div>
     </>
