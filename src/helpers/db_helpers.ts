@@ -1,4 +1,5 @@
-import sqlite, { executeQuery, setdbPath, fetchOne  } from "sqlite-electron";
+import sqlite, { executeQuery, setdbPath, fetchOne } from "sqlite-electron";
+import { hashPassword } from "./password_helpers";
 
 export async function initializeDatabase() {
   try {
@@ -19,24 +20,18 @@ async function initializeUsersTable() {
   const sql = `
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          username TEXT NOT NULL,
+          username TEXT NOT NULL UNIQUE,
           password TEXT NOT NULL,
           created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;
   await executeQuery(sql);
 
-  const checkAdminSql = `
-        SELECT 1 FROM users WHERE username = 'admin';
-      `;
-  const adminExists = await fetchOne(checkAdminSql);
-
-  if (!adminExists) {
-    const insertAdminSql = `
-          INSERT INTO users (username, password) VALUES ('admin', 'admin');
-        `;
-    await executeQuery(insertAdminSql);
-  }
+  const hashedPassword = await hashPassword("admin");  // Hash password
+  const insertAdminSql = `
+      INSERT INTO users (username, password) VALUES ('admin', ?);
+    `;
+  await executeQuery(insertAdminSql, [hashedPassword]);  // Use parameterized query to prevent SQL injection
 }
 
 async function initializeBatchesTable() {

@@ -1,14 +1,19 @@
-import React from "react";
+import React, { useContext } from "react";
 import DragWindowRegion from "@/components/DragWindowRegion";
 import NavigationMenu from "@/components/template/NavigationMenu";
 import ToggleTheme from "@/components/ToggleTheme";
 import LoginToggle from "@/components/LoginToggle";
+import { UserContext } from "@/App";
+import LogoutToggle from "@/components/LogoutToggle";
 
 export default function BaseLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+
+  const { user, setUser }: any = useContext(UserContext);
+
   return (
     <>
       <DragWindowRegion title="MyORI Label Checker" />
@@ -17,8 +22,10 @@ export default function BaseLayout({
           <NavigationMenu />
         </div>
         <div className="w-1/3 flex items-center justify-end p-2 gap-2">
-          <LoginToggle />
+          {
 
+            user ? <LogoutToggle /> : <LoginToggle />
+          }
           <ToggleTheme />
         </div>
       </div>

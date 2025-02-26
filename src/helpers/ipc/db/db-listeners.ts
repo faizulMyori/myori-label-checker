@@ -23,17 +23,27 @@ import sqlite, {
   load_extension,
   setdbPath,
 } from "sqlite-electron";
+import { checkPassword } from "../../password_helpers";
 
 export function addDBEventListeners() {
   ipcMain.handle(DB_LOGIN, async (event, data) => {
-    console.log(data.username)
     let username:string = data.username;
     let password:string = data.password;
 
     try {
-      return await fetchOne("SELECT * FROM users WHERE username = ? AND password = ?", [username, password]);
+      const result:any = await fetchOne("SELECT * FROM users WHERE username = ?", [username]);
+
+      if (result) {
+        const hashedPassword = result.password;
+        const isPasswordMatch = await checkPassword(password, hashedPassword);
+        if (isPasswordMatch) {
+          return result;
+        } else {
+          return false;
+        }
+      }
     } catch (error) {
-      return error;
+      return false;
     }
   });
 }

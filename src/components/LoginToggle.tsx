@@ -1,14 +1,17 @@
 import { Moon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectGroup, SelectTrigger, SelectValue } from "./ui/select";
 import { Input } from "./ui/input";
 import { FormDialog } from "./FormDialog";
+import { UserContext } from "@/App";
 
 export default function LoginToggle() {
   const [openLogin, setOpenLogin] = useState(false);
   const [form, setForm] = useState({ username: "", password: "" });
+  const [error, setError] = useState("");
+  const { user, setUser }: any = useContext(UserContext);
 
   const toggleLogin = () => {
     setOpenLogin(!openLogin);
@@ -17,10 +20,17 @@ export default function LoginToggle() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const login = await window.sqlite.db_login(form.username, form.password);
-      console.log(login)
+      const login: any = await window.sqlite.db_login(form.username, form.password);
+      if (login) {
+        console.log(login)
+        setOpenLogin(false);
+        setUser(login);
+      } else {
+        setError('Please enter invalid credentials.')
+      }
     } catch (error) {
-      console.log(error);
+      console.log(error)
+      setError('Please enter valid credentials.')
     }
   };
 
@@ -37,7 +47,7 @@ export default function LoginToggle() {
             openDialog={openLogin}
             setConfirmForm={handleSubmit}
             title={`Login`}
-            forms={<Form data={form} setData={setForm} />}
+            forms={<Form data={form} setData={setForm} error={error} />}
             processing={false}
           />
         )
@@ -47,7 +57,7 @@ export default function LoginToggle() {
   );
 }
 
-function Form({ data, setData }: { data: any; setData: any }) {
+function Form({ data, setData, error }: { data: any; setData: any; error: any }) {
   function updateInputValue(evt: any) {
     const val = evt.target.value;
 
@@ -81,7 +91,13 @@ function Form({ data, setData }: { data: any; setData: any }) {
           onChange={updateInputValue}
           value={data.password ?? ""}
         />
+        {
+          error && (
+            <div className="text-right text-xs col-span-4 text-red-500">{error}</div>
+          )
+        }
       </div>
+
     </>
   );
 }
