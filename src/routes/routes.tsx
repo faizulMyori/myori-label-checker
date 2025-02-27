@@ -5,6 +5,7 @@ import InventoryPage from "../pages/InventoryPage";
 import ProductionPage from "@/pages/ProductionPage";
 import HistoryPage from "@/pages/HistoryPage";
 import SettingPage from "@/pages/SettingPage";
+import ConnectionPage from "@/pages/ConnectionPage";
 
 // TODO: Steps to add a new route:
 // 1. Create a new page component in the '../pages/' directory (e.g., NewPage.tsx)
@@ -55,4 +56,10 @@ export const SettingRoute = createRoute({
   component: SettingPage,
 });
 
-export const rootTree = RootRoute.addChildren([HomeRoute, InventoryRoute, ProductionRoute, HistoryRoute, SettingRoute]);
+export const SettingConnectionRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/connection",
+  component: ConnectionPage,
+});
+
+export const rootTree = RootRoute.addChildren([HomeRoute, InventoryRoute, ProductionRoute, HistoryRoute, SettingRoute, SettingConnectionRoute]);

@@ -8,26 +8,20 @@ import {
   DB_SEARCH_PRODUCTS,
 } from "./db-channels";
 
-import sqlite, {
-  backup,
-  executeMany,
+import {
   executeQuery,
-  executeScript,
   fetchAll,
-  fetchMany,
   fetchOne,
-  load_extension,
-  setdbPath,
 } from "sqlite-electron";
 import { checkPassword } from "../../password_helpers";
 
 export function addDBEventListeners() {
   ipcMain.handle(DB_LOGIN, async (event, data) => {
-    let username:string = data.username;
-    let password:string = data.password;
+    let username: string = data.username;
+    let password: string = data.password;
 
     try {
-      const result:any = await fetchOne("SELECT * FROM users WHERE username = ?", [username]);
+      const result: any = await fetchOne("SELECT * FROM users WHERE username = ?", [username]);
 
       if (result) {
         const hashedPassword = result.password;

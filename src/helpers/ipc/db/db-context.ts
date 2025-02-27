@@ -10,7 +10,7 @@ import {
 export function exposeDBContext() {
   const { contextBridge, ipcRenderer } = window.require("electron");
   contextBridge.exposeInMainWorld("sqlite", {
-    db_login: (username: any, password: any) => ipcRenderer.invoke(DB_LOGIN, {username, password }),
+    db_login: (username: any, password: any) => ipcRenderer.invoke(DB_LOGIN, { username, password }),
     create_product: (data: any) => ipcRenderer.invoke(DB_CREATE_PRODUCT, data),
     get_products: () => ipcRenderer.invoke(DB_GET_PRODUCTS),
     search_products: (query: string) => ipcRenderer.invoke(DB_SEARCH_PRODUCTS, query),
