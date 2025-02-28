@@ -25,10 +25,19 @@ interface sqlite {
   search_products: (query: string) => Promise<void>;
   update_product: (data: any) => Promise<void>;
   delete_product: (id: any) => Promise<void>;
+  create_connection: (ip: any, port: any) => Promise<void>;
+  get_connections: () => Promise<void>;
+}
+
+interface tcpConnection {
+  tcp_connect: (connectionDetails: any) => Promise<void>;
+  tcp_disconnect: () => Promise<void>;
+  tcp_closed: (callback:any) => Promise<void>;
 }
 
 declare interface Window {
   themeMode: ThemeModeContext;
   electronWindow: ElectronWindow;
   sqlite: sqlite;
+  tcpConnection: tcpConnection;
 }

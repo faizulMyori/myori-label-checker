@@ -10,6 +10,7 @@ export async function initializeDatabase() {
     initializeUsersTable();
     initializeProductsTable();
     initializeLabelsTable();
+    initializeConnectionsDatabase();
     console.log("Database initialized successfully");
   } catch (error) {
     console.error("Failed to initialize database", error);
@@ -70,6 +71,18 @@ async function initializeLabelsTable() {
           status TEXT NOT NULL,
           batch_id INTEGER NOT NULL,
           user_id INTEGER NOT NULL,
+          timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
+  await executeQuery(sql);
+}
+
+async function initializeConnectionsDatabase() {
+  const sql = `
+        CREATE TABLE IF NOT EXISTS connections (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          ip TEXT NOT NULL,
+          port INTEGER NOT NULL,
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;

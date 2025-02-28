@@ -6,6 +6,8 @@ import {
   DB_CREATE_PRODUCT,
   DB_GET_PRODUCTS,
   DB_SEARCH_PRODUCTS,
+  DB_CREATE_CONNECTION,
+  DB_GET_CONNECTIONS,
 } from "./db-channels";
 
 import {
@@ -74,6 +76,31 @@ export function addDBEventListeners() {
       return await executeQuery("DELETE FROM products WHERE id = ?", [data]);
     } catch (error) {
       return false;
+    }
+  });
+
+  ipcMain.handle(DB_CREATE_CONNECTION, async (event, data) => {
+    // console.log(data)
+    try {
+      let checkIfAnyConnectionExisted = await fetchAll("SELECT * FROM connections");
+
+      if (checkIfAnyConnectionExisted.length > 0) {
+        //delete existing connection
+        await executeQuery("DELETE * FROM connections");
+      }
+
+      return await executeQuery("INSERT INTO connections (ip, port) VALUES (?, ?)", [data.ip, data.port]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_GET_CONNECTIONS, async (event) => {
+    try {
+      let data:any = await fetchOne("SELECT * FROM connections ORDER BY id DESC LIMIT 1");
+      return data
+    } catch (error) {
+      return error;
     }
   });
 }

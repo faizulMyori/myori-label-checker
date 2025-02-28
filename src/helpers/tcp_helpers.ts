@@ -14,6 +14,11 @@ export async function connectTcp(ip: any, port: any, event: any) {
             return;
         }
 
+        if (client && !client.destroyed) {
+            resolve('Connection already exists');
+            return;
+        }
+
         client = new net.Socket();
         const connectionTimeout = setTimeout(() => {
             client.destroy();
@@ -23,7 +28,6 @@ export async function connectTcp(ip: any, port: any, event: any) {
         client.connect(port, ip, () => {
             clearTimeout(connectionTimeout);
             resolve('Connected successfully');
-
             client.on('data', (data: any) => {
                 try {
                     const dataString = data.toString().trim();
@@ -34,6 +38,7 @@ export async function connectTcp(ip: any, port: any, event: any) {
             });
 
             client.on('close', () => {
+                console.log('Connection closed');
                 event.sender.send(TCP_CLOSED);
             });
         });

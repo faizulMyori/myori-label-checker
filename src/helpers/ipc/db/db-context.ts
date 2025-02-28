@@ -5,6 +5,8 @@ import {
   DB_CREATE_PRODUCT,
   DB_GET_PRODUCTS,
   DB_SEARCH_PRODUCTS,
+  DB_CREATE_CONNECTION,
+  DB_GET_CONNECTIONS
 } from "./db-channels";
 
 export function exposeDBContext() {
@@ -16,5 +18,7 @@ export function exposeDBContext() {
     search_products: (query: string) => ipcRenderer.invoke(DB_SEARCH_PRODUCTS, query),
     update_product: (data: any) => ipcRenderer.invoke(DB_UPDATE_PRODUCT, data),
     delete_product: (id: number) => ipcRenderer.invoke(DB_DELETE_PRODUCT, id),
+    create_connection: (ip: any, port: any) => ipcRenderer.invoke(DB_CREATE_CONNECTION, { ip, port }),
+    get_connections: () => ipcRenderer.invoke(DB_GET_CONNECTIONS),
   });
 }
