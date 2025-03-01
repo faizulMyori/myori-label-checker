@@ -20,7 +20,15 @@ export default function ConnectionPage() {
         setConnectionStatus("connecting")
         setConn("connecting")
         window.sqlite.create_connection(host, port).then(() => {
-            setConnectionStatus("connecting")
+            window.tcpConnection.tcp_connect({ ip: host, port: port }).then((data: any) => {
+                setConnectionStatus("connected")
+                setConn("connected")
+            }).catch((err: any) => {
+                if (err) {
+                    setConnectionStatus("failed")
+                    setConn("failed")
+                }
+            })
         })
     }
 
