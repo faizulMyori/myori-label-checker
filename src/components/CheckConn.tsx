@@ -1,7 +1,5 @@
-import { MonitorCheck, MonitorCog, MonitorDot, MonitorDown, Moon } from "lucide-react";
+import { MonitorCheck, MonitorCog, MonitorDot, MonitorDown, MonitorStop, Moon } from "lucide-react";
 import React, { useContext } from "react";
-import { Button } from "@/components/ui/button";
-import { toggleTheme } from "@/helpers/theme_helpers";
 import { UserContext } from "@/App";
 import {
   Tooltip,
@@ -21,9 +19,9 @@ export default function CheckConn() {
           <Link to={user ? "/setting" : "/"} onClick={() => setRoute(user ? "/setting" : "/")}>
             {conn === "connected" && (<MonitorCheck className="h-8 w-8 text-green-500" />)}
             {conn === "failed" && (<MonitorDown className="h-8 w-8 text-red-500" />)}
-            {conn === "connecting" && (<MonitorCog className="h-8 w-8 animate-spin" />)}
-            {conn === "idle" && (<MonitorDot className="h-8 w-8" />)}
-            {conn === "disconnecting" && (<MonitorCog className="h-8 w-8 animate-spin" />)}
+            {conn === "connecting" && (<MonitorCog className="h-8 w-8 text-yellow-500" />)}
+            {conn === "idle" && (<MonitorDot className="h-8 w-8 text-gray-500" />)}
+            {conn === "disconnecting" && (<MonitorStop className="h-8 w-8 text-orange-500" />)}
           </Link>
         </TooltipTrigger>
         <TooltipContent>

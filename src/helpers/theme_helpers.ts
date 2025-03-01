@@ -45,6 +45,11 @@ export async function toggleTheme() {
   localStorage.setItem(THEME_KEY, newTheme);
 }
 
+export async function getTheme(): Promise<ThemeMode> {
+  const { local } = await getCurrentTheme();
+  return local || "system";
+}
+
 export async function syncThemeWithLocal() {
   const { local } = await getCurrentTheme();
   if (!local) {

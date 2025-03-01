@@ -1,11 +1,9 @@
 import React, { useContext } from "react";
 import DragWindowRegion from "@/components/DragWindowRegion";
 import NavigationMenu from "@/components/template/NavigationMenu";
-import ToggleTheme from "@/components/ToggleTheme";
 import LoginToggle from "@/components/LoginToggle";
 import { UserContext } from "@/App";
 import LogoutToggle from "@/components/LogoutToggle";
-import { C } from "vitest/dist/chunks/reporters.DTtkbAtP";
 import CheckConn from "@/components/CheckConn";
 
 export default function BaseLayout({

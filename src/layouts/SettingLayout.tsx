@@ -14,6 +14,10 @@ export default function SettingLayout({ children, nav, setNav }: { children: Rea
             title: 'User Management',
             url: 'user management'
         },
+        {
+            title: 'Appereance',
+            url: 'appereance'
+        },
     ];
     return (
         <div className="flex h-full flex-col p-4 overflow-y-auto scrollbar w-full">
