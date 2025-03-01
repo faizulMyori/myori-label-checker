@@ -5,6 +5,8 @@ import ToggleTheme from "@/components/ToggleTheme";
 import LoginToggle from "@/components/LoginToggle";
 import { UserContext } from "@/App";
 import LogoutToggle from "@/components/LogoutToggle";
+import { C } from "vitest/dist/chunks/reporters.DTtkbAtP";
+import CheckConn from "@/components/CheckConn";
 
 export default function BaseLayout({
   children,
@@ -26,7 +28,8 @@ export default function BaseLayout({
 
             user ? <LogoutToggle /> : <LoginToggle />
           }
-          <ToggleTheme />
+          {/* <ToggleTheme /> */}
+          <CheckConn />
         </div>
       </div>
       <main className="h-screen pb-20 p-2">{children}</main>

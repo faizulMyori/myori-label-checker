@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useContext, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -8,14 +8,17 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AlertCircle, CheckCircle2 } from "lucide-react"
 import React from "react"
+import { UserContext } from "@/App"
 
 export default function ConnectionPage() {
     const [connectionStatus, setConnectionStatus] = useState<"idle" | "connecting" | "connected" | "failed" | "disconnecting">("idle")
     const [host, setHost] = useState("")
     const [port, setPort] = useState("")
+    const { conn, setConn }: any = useContext(UserContext);
 
     const handleConnect = () => {
         setConnectionStatus("connecting")
+        setConn("connecting")
         window.sqlite.create_connection(host, port).then(() => {
             setConnectionStatus("connecting")
         })
@@ -23,10 +26,13 @@ export default function ConnectionPage() {
 
     const handleDisconnect = () => {
         setConnectionStatus("disconnecting")
+        setConn("disconnecting")
         window.tcpConnection.tcp_disconnect().then((data: any) => {
             setConnectionStatus("idle")
+            setConn("disconnecting")
         }).catch((err: any) => {
             setConnectionStatus("idle")
+            setConn("disconnecting")
         })
     }
 
@@ -39,22 +45,27 @@ export default function ConnectionPage() {
                 window.tcpConnection.tcp_connect({ ip: resp.ip, port: resp.port }).then((data: any) => {
                     console.log(data)
                     setConnectionStatus("connected")
+                    setConn("connected")
                 }).catch((err: any) => {
                     if (err) {
                         setConnectionStatus("failed")
+                        setConn("failed")
                     }
                 })
                 setConnectionStatus("connecting")
+                setConn("connecting")
             } else {
                 setConnectionStatus("failed")
+                setConn("failed")
             }
         })
 
         window.tcpConnection.tcp_closed(renderConnectionStatus)
     }, [])
 
-    const renderConnectionStatus = useCallback((data:any) => {
+    const renderConnectionStatus = useCallback((data: any) => {
         setConnectionStatus("idle")
+        setConn("idle")
     }, [connectionStatus])
 
     return (

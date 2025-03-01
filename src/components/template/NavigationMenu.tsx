@@ -15,20 +15,26 @@ import { UserContext } from "@/App";
 export default function NavigationMenu() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = React.useState<string>("/");
-  const { user }: any = useContext(UserContext);
+  const { user, setUser, route, setRoute }: any = useContext(UserContext);
 
   useEffect(() => {
     if (!user) {
       setActiveTab("/");
+      setRoute("/");
     }
   }, [user])
-  
+
+  useEffect(() => {
+    setActiveTab(route);
+  }, [route])
+
   return (
     <NavigationMenuBase className="px-2 font-mono text-muted-foreground">
       <NavigationMenuList>
         <NavigationMenuItem>
           <Link to="/" onClick={() => {
             setActiveTab("/");
+            setRoute("/");
           }}>
             <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/" })} >
               {t("titleHomePage")}
@@ -41,6 +47,7 @@ export default function NavigationMenu() {
             <NavigationMenuItem>
               <Link to="/inventory" onClick={() => {
                 setActiveTab("/inventory");
+                setRoute("/inventory");
               }}>
                 <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/inventory" })}>
                   {t("titleInventoryPage")}
@@ -50,6 +57,7 @@ export default function NavigationMenu() {
             <NavigationMenuItem>
               <Link to="/production" onClick={() => {
                 setActiveTab("/production");
+                setRoute("/production");
               }}>
                 <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/production" })}>
                   {t("titleProductionPage")}
@@ -59,6 +67,7 @@ export default function NavigationMenu() {
             <NavigationMenuItem>
               <Link to="/history" onClick={() => {
                 setActiveTab("/history");
+                setRoute("/history");
               }}>
                 <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/history" })}>
                   {t("titleHistoryPage")}
@@ -68,6 +77,7 @@ export default function NavigationMenu() {
             <NavigationMenuItem>
               <Link to="/setting" onClick={() => {
                 setActiveTab("/setting");
+                setRoute("/setting");
               }}>
                 <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/setting" })}>
                   {t("titleSettingPage")}
