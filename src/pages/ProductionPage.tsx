@@ -17,7 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import React from "react"
 import Footer from "@/components/template/Footer"
 
-
 type LabelRoll = {
   id: string
   rollNumber: string
@@ -38,16 +37,6 @@ type ManualRejectEntry = {
   serialNumber: string
 }
 
-// Mock fetchProducts function
-// const fetchProducts = async () => {
-//   // Simulate fetching products from an API
-//   return new Promise<{ sku: string; name: string }[]>((resolve) => {
-//     setTimeout(() => {
-//       resolve(mockProducts)
-//     }, 500)
-//   })
-// }
-
 export default function ProductionPage() {
   const [capturedData, setCapturedData] = useState([] as any[])
   const [duplicatedData, setDuplicatedData] = useState([] as any[])
@@ -58,14 +47,22 @@ export default function ProductionPage() {
   const [labelRolls, setLabelRolls] = useState<LabelRoll[]>([
     { id: "1", rollNumber: "1", startNumber: "", endNumber: "", verified: false },
   ])
-  const [products, setProducts] = useState<{ sku: string; name: string }[]>([])
+  const [products, setProducts] = useState([] as any[])
   const [loading, setLoading] = useState(false)
   const [productionStatus, setProductionStatus] = useState<"IDLE" | "RUNNING" | "STOPPED">("IDLE")
   const [savedProduction, setSavedProduction] = useState<ProductionData | null>(null)
   const [manualRejectEntries, setManualRejectEntries] = useState<ManualRejectEntry[]>([])
   const [isManualRejectModalOpen, setIsManualRejectModalOpen] = useState(false)
   const [newSerialNumber, setNewSerialNumber] = useState("")
-
+  const [productData, setProductData] = useState({
+    id: "",
+    sku: "",
+    brand: "",
+    model: "",
+    type: "",
+    rating: "",
+    size: "",
+  })
   // Get today's date formatted
   const today = new Date().toISOString().split("T")[0]
 
@@ -147,7 +144,7 @@ export default function ProductionPage() {
       try {
         window.sqlite.get_products().then((data: any) => {
           console.log(data)
-          setProducts(data.map((d: any) => ({ sku: d.sku, name: d.model })))
+          setProducts(data)
         })
       } catch (error) {
         console.error("Failed to fetch products:", error)
@@ -191,8 +188,94 @@ export default function ProductionPage() {
   }
 
   const handleDownload = (section: string) => {
-    // Implement download logic here
-    console.log(`Downloading ${section} data`)
+    let metadata: any = [
+      "SIRIM SERIAL NO.",
+      "BATCH NO",
+      "BRAND/TRADEMARK",
+      "MODEL",
+      "TYPE",
+      "RATING",
+      "SIZE"
+    ];
+    let data: any = []
+    let title: any = 'Report'
+
+    if (section === "captured") {
+      data = capturedData
+        .filter(item => !missingData.some(dup => dup.serial === item.serial) && !manualRejectEntries.some(dup => dup.serialNumber === item.serial)) // Exclude duplicates first
+        .map((item: any) => [
+          item.serial,
+          batchNo,
+          productData.brand,
+          productData.model,
+          productData.type,
+          productData.rating,
+          productData.size
+        ]);
+
+      title = "SIRIM REPORT"
+    }
+
+    if (section === "manual-reject") {
+      data = manualRejectEntries.map((item: any) => [
+        item.serialNumber,
+        batchNo,
+        productData.brand,
+        productData.model,
+        productData.type,
+        productData.rating,
+        productData.size
+      ]);
+
+      title = "MANUAL REJECT REPORT"
+    }
+
+    if (section === "missing") {
+      data = missingData.map((item: any) => [
+        item.serial,
+        batchNo,
+        productData.brand,
+        productData.model,
+        productData.type,
+        productData.rating,
+        productData.size
+      ]);
+
+      title = "MISSING REPORT"
+    }
+
+    if (section === "duplicate") {
+      data = duplicatedData.map((item: any) => [
+        item.serial,
+        batchNo,
+        productData.brand,
+        productData.model,
+        productData.type,
+        productData.rating,
+        productData.size
+      ]);
+
+      title = "DUPLICATE REPORT"
+    }
+
+    if (section === "unused-serials") {
+      metadata = ["SIRIM SERIAL NO."];
+      data = remainingSerials.map((item: any) => [
+        item
+      ])
+
+      title = "UNUSED SERIALS REPORT"
+    }
+
+    try {
+      window.excel.save_to_excel(
+        metadata,
+        data,
+        title
+      )
+    } catch (error) {
+      console.error("Failed to save to Excel:", error)
+    }
   }
 
   useEffect(() => {
@@ -302,7 +385,6 @@ export default function ProductionPage() {
   // Get only the valid used serials (excluding missing & duplicates)
   const usedSerials = capturedData.map(({ serial }) => serial);
 
-
   // Calculate remaining serials
   const remainingSerials = totalSerials.filter(serial => !usedSerials.includes(serial));
 
@@ -361,7 +443,10 @@ export default function ProductionPage() {
                               Product
                             </Label>
                             <div className="col-span-3">
-                              <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+                              <Select value={selectedProduct} onValueChange={(value) => {
+                                setSelectedProduct(value)
+                                setProductData(products.find((product: any) => product.id.toString() === value) || {})
+                              }}>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select a product" />
                                 </SelectTrigger>
@@ -372,8 +457,8 @@ export default function ProductionPage() {
                                     </SelectItem>
                                   ) : (
                                     products.map((product) => (
-                                      <SelectItem key={product.sku} value={product.sku}>
-                                        {product.sku} - {product.name}
+                                      <SelectItem key={product.id} value={product.id.toString()}>
+                                        {product.sku} - {product.model}
                                       </SelectItem>
                                     ))
                                   )}
@@ -508,7 +593,7 @@ export default function ProductionPage() {
                   </Card>
 
                   {/* Reading Captured Data */}
-                  <Card className="col-span-9">
+                  <Card className="col-span-6">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-lg">READING CAPTURED DATA</CardTitle>
                       <div className="flex items-center gap-2">
@@ -532,24 +617,24 @@ export default function ProductionPage() {
                   </Card>
 
                   {/* Auto-Reject Data */}
-                  {/* <Card className="col-span-4">
+                  <Card className="col-span-3">
                     <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle className="text-lg">AUTO-REJECT DATA</CardTitle>
+                      <CardTitle className="text-lg">UNUSED SERIALS</CardTitle>
                       <div className="flex items-center gap-2">
-                        <div className="text-2xl font-bold">{mockRejectData.length}</div>
-                        <Button variant="ghost" size="sm" onClick={() => handleDownload("auto-reject")}>
+                        <div className="text-2xl font-bold">{remainingSerials.length}</div>
+                        <Button variant="ghost" size="sm" onClick={() => handleDownload("unused-serials")}>
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      {mockRejectData.map((item, index) => (
+                    <CardContent className="h-[200px] overflow-y-auto">
+                      {remainingSerials.map((item, index) => (
                         <div key={index} className="text-sm text-red-500">
-                          {`${item.id}, ${item.status}`}
+                          {`${item}`}
                         </div>
                       ))}
                     </CardContent>
-                  </Card> */}
+                  </Card>
 
                   {/* Bottom Row */}
                   <Card className="col-span-4">

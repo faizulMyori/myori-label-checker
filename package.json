@@ -6,6 +6,7 @@
   "main": ".vite/build/main.js",
   "private": true,
   "scripts": {
+    "pack:win": "npx @electron/packager . MyORI-Label-Checker --out=dist/win --platform=win32 --arch=x64 --icon=assets/icon.ico",
     "start": "electron-forge start",
     "bikin": "npx @electron/packager . --overwrite",
     "package": "electron-forge package",
@@ -20,7 +21,7 @@
     "test:e2e": "playwright test",
     "test:all": "vitest run && playwright test"
   },
-  "author": "ROG <luan.roger.2003@gmail.com>",
+  "author": "Faizul <faizul@myori.my>",
   "license": "MIT",
   "devDependencies": {
     "@electron-forge/cli": "^7.7.0",

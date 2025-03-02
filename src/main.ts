@@ -16,11 +16,11 @@ function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    // maximizable: false,
-    // fullscreen: true,
-    // autoHideMenuBar: true,
+    maximizable: false,
+    fullscreen: true,
+    autoHideMenuBar: true,
     webPreferences: {
-      devTools: true,
+      devTools: false,
       contextIsolation: true,
       nodeIntegration: true,
       nodeIntegrationInSubFrames: false,

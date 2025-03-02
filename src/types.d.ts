@@ -50,9 +50,14 @@ interface tcpConnection {
   tcp_received: (callback: any) => Promise<void>;
 }
 
+interface excel {
+  save_to_excel: (metadata: any, data: any, title: string) => Promise<void>;
+}
+
 declare interface Window {
   themeMode: ThemeModeContext;
   electronWindow: ElectronWindow;
   sqlite: sqlite;
   tcpConnection: tcpConnection;
+  excel: excel
 }

@@ -5,6 +5,6 @@ import {
 export function exposeExcelContext() {
   const { contextBridge, ipcRenderer } = window.require("electron");
   contextBridge.exposeInMainWorld("excel", {
-    saveToExcel: (metadata: any, data: any) => ipcRenderer.invoke(EXCEL_SAVE, { metadata, data }),
+    save_to_excel: (metadata: any, data: any, title: string) => ipcRenderer.invoke(EXCEL_SAVE, { metadata, data, title }),
   });
 }
