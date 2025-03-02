@@ -47,6 +47,7 @@ interface tcpConnection {
   tcp_connect: (connectionDetails: any) => Promise<void>;
   tcp_disconnect: () => Promise<void>;
   tcp_closed: (callback: any) => Promise<void>;
+  tcp_received: (callback: any) => Promise<void>;
 }
 
 declare interface Window {

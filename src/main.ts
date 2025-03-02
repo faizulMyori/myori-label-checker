@@ -20,7 +20,7 @@ function createWindow() {
     // fullscreen: true,
     // autoHideMenuBar: true,
     webPreferences: {
-      devTools: inDevelopment,
+      devTools: true,
       contextIsolation: true,
       nodeIntegration: true,
       nodeIntegrationInSubFrames: false,

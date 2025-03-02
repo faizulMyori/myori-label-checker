@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, Navigate, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import {
   NavigationMenu as NavigationMenuBase,
@@ -16,6 +16,7 @@ export default function NavigationMenu() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = React.useState<string>("/");
   const { user, setUser, route, setRoute }: any = useContext(UserContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) {
@@ -32,67 +33,61 @@ export default function NavigationMenu() {
     <NavigationMenuBase className="px-2 font-mono text-muted-foreground">
       <NavigationMenuList>
         <NavigationMenuItem>
-          <Link to="/" onClick={() => {
-            setActiveTab("/");
-            setRoute("/");
-          }}>
-            <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/" })} >
-              {t("titleHomePage")}
-            </NavigationMenuLink>
-          </Link>
+          <NavigationMenuLink onClick={() => {
+            setActiveTab("/")
+            setRoute("/")
+            navigate({ to: "/" })
+          }} className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/" })} >
+            {t("titleHomePage")}
+          </NavigationMenuLink>
         </NavigationMenuItem>
         {
           user &&
           <>
             <NavigationMenuItem>
-              <Link to="/inventory" onClick={() => {
+              <NavigationMenuLink onClick={() => {
                 setActiveTab("/inventory");
                 setRoute("/inventory");
-              }}>
-                <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/inventory" })}>
-                  {t("titleInventoryPage")}
-                </NavigationMenuLink>
-              </Link>
+                navigate({ to: "/inventory" })
+              }} className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/inventory" })}>
+                {t("titleInventoryPage")}
+              </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link to="/license" onClick={() => {
+              <NavigationMenuLink onClick={() => {
                 setActiveTab("/license");
                 setRoute("/license");
-              }}>
-                <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/license" })}>
-                  {t("titleLicensePage")}
-                </NavigationMenuLink>
-              </Link>
+                navigate({ to: "/license" })
+              }} className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/license" })}>
+                {t("titleLicensePage")}
+              </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link to="/production" onClick={() => {
+              <NavigationMenuLink onClick={() => {
                 setActiveTab("/production");
                 setRoute("/production");
-              }}>
-                <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/production" })}>
-                  {t("titleProductionPage")}
-                </NavigationMenuLink>
-              </Link>
+                navigate({ to: "/production" })
+              }} className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/production" })}>
+                {t("titleProductionPage")}
+              </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link to="/history" onClick={() => {
+              <NavigationMenuLink onClick={() => {
                 setActiveTab("/history");
                 setRoute("/history");
-              }}>
-                <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/history" })}>
-                  {t("titleHistoryPage")}
-                </NavigationMenuLink>
-              </Link>
+                navigate({ to: "/history" })
+              }} className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/history" })}>
+                {t("titleHistoryPage")}
+              </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link to="/setting" onClick={() => {
+              <NavigationMenuLink onClick={() => {
                 setActiveTab("/setting");
                 setRoute("/setting");
-              }}>
-                <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/setting" })}>
-                  {t("titleSettingPage")}
-                </NavigationMenuLink>
-              </Link>
+                navigate({ to: "/setting" })
+              }} className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/setting" })}>
+                {t("titleSettingPage")}
+              </NavigationMenuLink>
             </NavigationMenuItem>
           </>
         }

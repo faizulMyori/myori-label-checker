@@ -27,7 +27,9 @@ export default function App() {
   useEffect(() => {
     syncThemeWithLocal();
     updateAppLanguage(i18n);
+  }, [i18n]);
 
+  useEffect(() => {
     const handleConnection = async () => {
       try {
         const resp: any = await window.sqlite.get_connections();
@@ -48,10 +50,6 @@ export default function App() {
       }
     };
     handleConnection();
-
-  }, [i18n]);
-
-  useEffect(() => {
     window.tcpConnection.tcp_closed(renderConnectionStatus);
   }, []);
 
@@ -68,8 +66,8 @@ export default function App() {
 
 const root = createRoot(document.getElementById("app")!);
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  // <React.StrictMode>
+  <App />
+  // </React.StrictMode>
 );
 

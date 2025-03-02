@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Plus, Check, RefreshCcw, Download } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -17,31 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import React from "react"
 import Footer from "@/components/template/Footer"
 
-// Mock product data
-const mockProducts = [
-  { sku: "PRD001", name: "Product A" },
-  { sku: "PRD002", name: "Product B" },
-  { sku: "PRD003", name: "Product C" },
-  { sku: "PRD004", name: "Product D" },
-  { sku: "PRD005", name: "Product E" },
-]
-
-// Mock captured data
-const mockCapturedData = [
-  { id: "TA000001", url: "https://urls.com" },
-  { id: "TA000002", url: "https://urls.com" },
-  { id: "TA000004", url: "https://urls.com" },
-  { id: "TA000010", url: "https://urls.com" },
-  { id: "REJECT00001", status: "ERROR" },
-  { id: "TA000012", url: "https://urls.com" },
-  { id: "TA000012", url: "https://urls.com" },
-]
-
-// Mock reject data
-const mockRejectData = [
-  { id: "REJECT00001", status: "ERROR" },
-  { id: "REJECT00002", status: "ERROR" },
-]
 
 type LabelRoll = {
   id: string
@@ -64,16 +39,19 @@ type ManualRejectEntry = {
 }
 
 // Mock fetchProducts function
-const fetchProducts = async () => {
-  // Simulate fetching products from an API
-  return new Promise<{ sku: string; name: string }[]>((resolve) => {
-    setTimeout(() => {
-      resolve(mockProducts)
-    }, 500)
-  })
-}
+// const fetchProducts = async () => {
+//   // Simulate fetching products from an API
+//   return new Promise<{ sku: string; name: string }[]>((resolve) => {
+//     setTimeout(() => {
+//       resolve(mockProducts)
+//     }, 500)
+//   })
+// }
 
 export default function ProductionPage() {
+  const [capturedData, setCapturedData] = useState([] as any[])
+  const [duplicatedData, setDuplicatedData] = useState([] as any[])
+  const [missingData, setMissingData] = useState([] as any[])
   const [open, setOpen] = useState(false)
   const [batchNo, setBatchNo] = useState("")
   const [selectedProduct, setSelectedProduct] = useState("")
@@ -95,19 +73,31 @@ export default function ProductionPage() {
   const calculateTotalLabels = () => {
     return labelRolls.reduce((total, roll) => {
       if (roll.verified && roll.startNumber && roll.endNumber) {
-        const start = Number.parseInt(roll.startNumber)
-        const end = Number.parseInt(roll.endNumber)
+        const startMatch = roll.startNumber.match(/^([A-Za-z]+)(\d+)$/);
+        const endMatch = roll.endNumber.match(/^([A-Za-z]+)(\d+)$/);
+
+        if (!startMatch || !endMatch) return total; // Skip invalid format
+
+        const startPrefix = startMatch[1];
+        const endPrefix = endMatch[1];
+
+        if (startPrefix !== endPrefix) return total; // Ensure same prefix
+
+        const start = parseInt(startMatch[2], 10);
+        const end = parseInt(endMatch[2], 10);
+
         if (!isNaN(start) && !isNaN(end) && end >= start) {
-          return total + (end - start + 1)
+          return total + (end - start + 1);
         }
       }
-      return total
-    }, 0)
-  }
+      return total;
+    }, 0);
+  };
+
 
   // Add new label roll
   const addLabelRoll = () => {
-    const newRollNumber = (labelRolls.length + 1).toString()
+    const newRollNumber = (labelRolls.length + 1).toString();
     setLabelRolls([
       ...labelRolls,
       {
@@ -117,25 +107,37 @@ export default function ProductionPage() {
         endNumber: "",
         verified: false,
       },
-    ])
-  }
+    ]);
+  };
 
   // Update label roll
   const updateLabelRoll = (id: string, field: keyof LabelRoll, value: string | boolean) => {
-    setLabelRolls(labelRolls.map((roll) => (roll.id === id ? { ...roll, [field]: value } : roll)))
-  }
+    setLabelRolls(labelRolls.map((roll) => (roll.id === id ? { ...roll, [field]: value } : roll)));
+  };
 
   // Verify label roll
   const verifyLabelRoll = (id: string) => {
-    const roll = labelRolls.find((r) => r.id === id)
+    const roll = labelRolls.find((r) => r.id === id);
     if (roll && roll.rollNumber && roll.startNumber && roll.endNumber) {
-      const start = Number.parseInt(roll.startNumber)
-      const end = Number.parseInt(roll.endNumber)
+      const startMatch = roll.startNumber.match(/^([A-Za-z]+)(\d+)$/);
+      const endMatch = roll.endNumber.match(/^([A-Za-z]+)(\d+)$/);
+
+      if (!startMatch || !endMatch) return; // Invalid format, skip
+
+      const startPrefix = startMatch[1];
+      const endPrefix = endMatch[1];
+
+      if (startPrefix !== endPrefix) return; // Ensure prefix consistency
+
+      const start = parseInt(startMatch[2], 10);
+      const end = parseInt(endMatch[2], 10);
+
       if (!isNaN(start) && !isNaN(end) && end >= start) {
-        updateLabelRoll(id, "verified", true)
+        updateLabelRoll(id, "verified", true);
       }
     }
-  }
+  };
+
 
   // Load products when dialog opens
   const handleOpenChange = async (isOpen: boolean) => {
@@ -143,8 +145,10 @@ export default function ProductionPage() {
     if (isOpen && products.length === 0) {
       setLoading(true)
       try {
-        const data = await fetchProducts()
-        setProducts(data)
+        window.sqlite.get_products().then((data: any) => {
+          console.log(data)
+          setProducts(data.map((d: any) => ({ sku: d.sku, name: d.model })))
+        })
       } catch (error) {
         console.error("Failed to fetch products:", error)
       } finally {
@@ -190,6 +194,120 @@ export default function ProductionPage() {
     // Implement download logic here
     console.log(`Downloading ${section} data`)
   }
+
+  useEffect(() => {
+    if (productionStatus !== "RUNNING") return;
+
+    const handleTcpData = (data: any) => {
+      let [serial, url, status] = data.split(',').map((data: string) => data.trim());
+      console.log("Received Data:", serial, url, status);
+
+      if (!status) return; // Ignore invalid data
+      if (productionStatus !== "RUNNING") return;
+
+      // Handle missing serial case
+      if (!serial || !url) {
+        setCapturedData((prevData) => {
+          if (prevData.length === 0) return prevData;
+
+          const lastEntry = prevData[prevData.length - 1];
+          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/);
+          if (!match) return prevData; // Invalid format, skip
+
+          const prefix = match[1]; // Extract prefix
+          const lastSerialNum = parseInt(match[2], 10); // Extract numeric part
+          const numLength = match[2].length; // Preserve number format
+
+          const newSerialNum = lastSerialNum + 1;
+          serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`;
+
+          url = lastEntry.url;
+          const newEntry = { serial, url, status };
+
+          setMissingData((prevMissing) => [...prevMissing, newEntry]);
+          return [...prevData, newEntry];
+        });
+        return;
+      }
+
+      // Validate serial against label rolls
+      const serialNum = parseInt(serial.replace(/\D/g, ""), 10);
+      const isValidSerial = labelRolls.some(({ startNumber, endNumber }) => {
+        const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/);
+        const endMatch = endNumber.match(/^([A-Za-z]+)(\d+)$/);
+        if (!startMatch || !endMatch) return false;
+
+        const startPrefix = startMatch[1];
+        const endPrefix = endMatch[1];
+
+        if (startPrefix !== endPrefix) return false; // Ensure prefix consistency
+
+        const start = parseInt(startMatch[2], 10);
+        const end = parseInt(endMatch[2], 10);
+
+        return serial.startsWith(startPrefix) && serialNum >= start && serialNum <= end;
+      });
+
+      if (!isValidSerial) return;
+
+      setCapturedData((prevData) => {
+        // Check if serial is already captured
+        const alreadyCaptured = prevData.some(entry => entry.serial === serial);
+
+        // If serial is a duplicate, add to duplicatedData
+        if (alreadyCaptured) {
+          setDuplicatedData((prevDuplicates) => {
+            if (!prevDuplicates.some(dup => dup.serial === serial)) {
+              return [...prevDuplicates, { serial, url, status }];
+            }
+            return prevDuplicates;
+          });
+          return prevData; // Don't add again
+        }
+
+        // Exclude manual rejected entries
+        if (manualRejectEntries.some(entry => entry.serialNumber === serial)) {
+          return prevData;
+        }
+
+        return [...prevData, { serial, url, status }];
+      });
+    };
+
+    // Attach event listener only once
+    window.tcpConnection.tcp_received(handleTcpData);
+
+    return () => {
+      window.tcpConnection.tcp_received(null); // Cleanup to prevent multiple bindings
+    };
+  }, [productionStatus]); // Empty dependency array to run only once
+
+  // Generate list of all possible serials
+  const totalSerials = labelRolls.flatMap(({ startNumber, endNumber }) => {
+    const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/);
+    const endMatch = endNumber.match(/^([A-Za-z]+)(\d+)$/);
+
+    if (!startMatch || !endMatch) return []; // Skip if format is invalid
+
+    const prefix = startMatch[1];
+    const numLength = startMatch[2].length;
+    const start = parseInt(startMatch[2], 10);
+    const end = parseInt(endMatch[2], 10);
+
+    return (isNaN(start) || isNaN(end) || start > end)
+      ? [] // Ensure valid range
+      : Array.from({ length: end - start + 1 }, (_, i) => `${prefix}${String(start + i).padStart(numLength, "0")}`);
+  });
+
+  // Get only the valid used serials (excluding missing & duplicates)
+  const usedSerials = capturedData.map(({ serial }) => serial);
+
+
+  // Calculate remaining serials
+  const remainingSerials = totalSerials.filter(serial => !usedSerials.includes(serial));
+
+  console.log("Used Serials:", usedSerials);
+  console.log("Remaining Serials:", remainingSerials);
 
   return (
     <div className="flex h-full flex-col p-4 overflow-y-auto scrollbar w-full">
@@ -321,7 +439,7 @@ export default function ProductionPage() {
                           </div>
                         </div>
                         <div className="flex justify-end">
-                          <Button type="button" onClick={saveProduction}>
+                          <Button type="button" onClick={saveProduction} disabled={productionStatus === "RUNNING" || labelRolls.some((roll) => !roll.verified)}>
                             Save Production Batch
                           </Button>
                         </div>
@@ -390,23 +508,23 @@ export default function ProductionPage() {
                   </Card>
 
                   {/* Reading Captured Data */}
-                  <Card className="col-span-5">
+                  <Card className="col-span-9">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-lg">READING CAPTURED DATA</CardTitle>
                       <div className="flex items-center gap-2">
-                        <div className="text-2xl font-bold">{mockCapturedData.length}</div>
+                        <div className="text-2xl font-bold">{capturedData.length}</div>
                         <Button variant="ghost" size="sm" onClick={() => handleDownload("captured")}>
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
                     </CardHeader>
                     <CardContent className="h-[200px] overflow-y-auto">
-                      {mockCapturedData.map((item, index) => (
+                      {capturedData.map((item, index) => (
                         <div key={index} className="text-sm">
-                          {item.url ? (
-                            `${item.id}, ${item.url}`
+                          {item.status === "OK" ? (
+                            `${item.serial}, ${item.url}, ${item.status}`
                           ) : (
-                            <span className="text-red-500">{`${item.id}, ${item.status}`}</span>
+                            <span className="text-red-500">{`${item.serial}, ${item.url}, ${item.status}`}</span>
                           )}
                         </div>
                       ))}
@@ -414,7 +532,7 @@ export default function ProductionPage() {
                   </Card>
 
                   {/* Auto-Reject Data */}
-                  <Card className="col-span-4">
+                  {/* <Card className="col-span-4">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-lg">AUTO-REJECT DATA</CardTitle>
                       <div className="flex items-center gap-2">
@@ -431,25 +549,25 @@ export default function ProductionPage() {
                         </div>
                       ))}
                     </CardContent>
-                  </Card>
+                  </Card> */}
 
                   {/* Bottom Row */}
                   <Card className="col-span-4">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-lg">MISSING DATA</CardTitle>
                       <div className="flex items-center gap-2">
-                        <div className="text-2xl font-bold">1</div>
+                        <div className="text-2xl font-bold">{missingData.length}</div>
                         <Button variant="ghost" size="sm" onClick={() => handleDownload("missing")}>
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="text-sm mb-4">TA000003</div>
-                      <Button variant="secondary" size="sm">
-                        <RefreshCcw className="h-4 w-4 mr-2" />
-                        Refresh
-                      </Button>
+                    <CardContent className="h-[200px] overflow-y-auto">
+                      {missingData.map((item, index) => (
+                        <div key={index} className="text-sm text-red-500">
+                          {`${item.serial}, ${item.url}, ${item.status}`}
+                        </div>
+                      ))}
                     </CardContent>
                   </Card>
 
@@ -457,18 +575,18 @@ export default function ProductionPage() {
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-lg">DUPLICATE DATA</CardTitle>
                       <div className="flex items-center gap-2">
-                        <div className="text-2xl font-bold">1</div>
+                        <div className="text-2xl font-bold">{duplicatedData.length}</div>
                         <Button variant="ghost" size="sm" onClick={() => handleDownload("duplicate")}>
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="text-sm mb-4">TA000012</div>
-                      <Button variant="secondary" size="sm">
-                        <RefreshCcw className="h-4 w-4 mr-2" />
-                        Refresh
-                      </Button>
+                    <CardContent className="h-[200px] overflow-y-auto">
+                      {duplicatedData.map((item, index) => (
+                        <div key={index} className="text-sm text-red-500">
+                          {`${item.serial}, ${item.url}, ${item.status}`}
+                        </div>
+                      ))}
                     </CardContent>
                   </Card>
 
@@ -482,7 +600,7 @@ export default function ProductionPage() {
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="h-[200px] overflow-y-auto">
                       <div className="space-y-2">
                         {manualRejectEntries.map((entry) => (
                           <div key={entry.id} className="text-sm">

@@ -8,6 +8,7 @@ import {
 let client: any = null;
 
 export async function connectTcp(ip: any, port: any, event: any) {
+    console.log(ip)
     return new Promise((resolve, reject) => {
         if (!ip || !port) {
             reject('Invalid IP or Port');
