@@ -7,11 +7,12 @@ import { Input } from "./ui/input";
 import { FormDialog } from "./FormDialog";
 import { UserContext } from "@/App";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { useNavigate } from "@tanstack/react-router";
 
 export default function LogoutToggle() {
   const [openLogout, setOpenLogout] = useState(false);
-  const { user, setUser }: any = useContext(UserContext);
-
+  const { user, setUser, setRoute }: any = useContext(UserContext);
+  const navigate = useNavigate();
   const toggleLogout = () => {
     console.log('masuk')
 
@@ -20,6 +21,8 @@ export default function LogoutToggle() {
 
   const handleSubmit = async () => {
     setUser(null)
+    setRoute('/')
+    navigate({ to: '/' })
   };
 
   return (

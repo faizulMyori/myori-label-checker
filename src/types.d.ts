@@ -20,11 +20,19 @@ interface ElectronWindow {
 
 interface sqlite {
   db_login: (username: any, password: any) => Promise<void>;
+
   create_product: (data: any) => Promise<void>;
   get_products: () => Promise<void>;
   search_products: (query: string) => Promise<void>;
   update_product: (data: any) => Promise<void>;
   delete_product: (id: any) => Promise<void>;
+
+  create_license: (data: any) => Promise<void>;
+  get_licenses: () => Promise<void>;
+  search_licenses: (query: string) => Promise<void>;
+  update_license: (data: any) => Promise<void>;
+  delete_license: (id: any) => Promise<void>;
+
   create_connection: (ip: any, port: any) => Promise<void>;
   get_connections: () => Promise<void>;
 }
@@ -32,7 +40,7 @@ interface sqlite {
 interface tcpConnection {
   tcp_connect: (connectionDetails: any) => Promise<void>;
   tcp_disconnect: () => Promise<void>;
-  tcp_closed: (callback:any) => Promise<void>;
+  tcp_closed: (callback: any) => Promise<void>;
 }
 
 declare interface Window {

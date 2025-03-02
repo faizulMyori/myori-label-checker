@@ -11,6 +11,7 @@ export async function initializeDatabase() {
     initializeProductsTable();
     initializeLabelsTable();
     initializeConnectionsDatabase();
+    initializeLicensesDatabase();
     console.log("Database initialized successfully");
   } catch (error) {
     console.error("Failed to initialize database", error);
@@ -51,11 +52,13 @@ async function initializeProductsTable() {
   const sql = `
         CREATE TABLE IF NOT EXISTS products (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          sku TEXT NOT NULL,
           brand TEXT NOT NULL,
           model TEXT NOT NULL,
           type TEXT NOT NULL,
           rating TEXT NOT NULL,
           size TEXT NOT NULL,
+          license_id INTEGER NOT NULL,
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;
@@ -83,6 +86,18 @@ async function initializeConnectionsDatabase() {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           ip TEXT NOT NULL,
           port INTEGER NOT NULL,
+          timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
+  await executeQuery(sql);
+}
+
+async function initializeLicensesDatabase() {
+  const sql = `
+        CREATE TABLE IF NOT EXISTS licenses (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          code TEXT NOT NULL,
+          name TEXT NOT NULL,
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;

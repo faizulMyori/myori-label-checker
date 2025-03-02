@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { FormDialog } from '@/components/FormDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import ComboboxSelect from '@/components/ComboboxSelect'
 
 export default function Index() {
   const [products, setProducts] = useState({
@@ -17,20 +18,33 @@ export default function Index() {
     next_page_url: null,
     prev_page_url: null,
   })
-
+  const [licenses, setLicenses] = useState([])
   const [formType, setFormType] = useState<'create' | 'update'>('create')
-  const [form, setForm] = useState({
+
+  const initialState = {
     id: 0,
     model: '',
     type: '',
     rating: '',
     size: '',
     brand: '',
-  });
+    sku: '',
+    license_id: ''
+  };
+
+  const [form, setForm] = useState(initialState);
   const [openForm, setOpenForm] = useState(false);
   const [deleteDialog, setOpenDeleteDialog] = useState(false);
 
   const columns = [
+    {
+      key: 'sku',
+      label: 'SKU',
+      hidden: false,
+      render: (item: any) => (
+        item.sku
+      )
+    },
     {
       key: 'model',
       label: 'Model',
@@ -53,14 +67,6 @@ export default function Index() {
       hidden: false,
       render: (item: any) => (
         item.rating
-      )
-    },
-    {
-      key: 'size',
-      label: 'Size (l)',
-      hidden: false,
-      render: (item: any) => (
-        item.size
       )
     },
   ]
@@ -104,18 +110,19 @@ export default function Index() {
   }
 
   const handleAdd = (e: React.MouseEvent) => {
+    setForm(initialState)
     setOpenForm(true)
     setFormType('create')
   }
 
   const handleConfirmDelete = () => {
-   try {
-     window.sqlite.delete_product(form.id).then((d: any) => {
-       setOpenDeleteDialog(false)
-     })
-   } catch (error) {
-     console.log(error)
-   }
+    try {
+      window.sqlite.delete_product(form.id).then((d: any) => {
+        setOpenDeleteDialog(false)
+      })
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   useEffect(() => {
@@ -126,7 +133,10 @@ export default function Index() {
           data: d,
         })
 
-        console.log(products)
+        window.sqlite.get_licenses().then((l: any) => {
+          console.log(l)
+          setLicenses(l)
+        })
       })
     } catch (error) {
       console.log(error)
@@ -139,7 +149,6 @@ export default function Index() {
     try {
       if (formType === 'create') {
         const submitData: any = await window.sqlite.create_product(form);
-        console.log(submitData)
         if (submitData) {
           setOpenForm(false);
         }
@@ -191,7 +200,7 @@ export default function Index() {
             openDialog={openForm}
             setConfirmForm={handleSubmit}
             title={`Create Product`}
-            forms={<Form data={form} setData={setForm} />}
+            forms={<Form data={form} setData={setForm} licenses={licenses} />}
             processing={false}
             size='lg:max-w-3xl'
           />
@@ -212,7 +221,7 @@ export default function Index() {
   )
 }
 
-function Form({ data, setData }: { data: any; setData: any }) {
+function Form({ data, setData, licenses }: { data: any; setData: any; licenses: any }) {
   function updateInputValue(evt: any) {
     const val = evt.target.value;
 
@@ -224,6 +233,18 @@ function Form({ data, setData }: { data: any; setData: any }) {
 
   return (
     <>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="sku" className="text-right">
+          SKU
+        </Label>
+        <Input
+          id="sku"
+          placeholder="Enter SKU"
+          className="col-span-3"
+          onChange={updateInputValue}
+          value={data.sku ?? ""}
+        />
+      </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="brand" className="text-right">
           Brand
@@ -282,6 +303,20 @@ function Form({ data, setData }: { data: any; setData: any }) {
           className="col-span-3"
           onChange={updateInputValue}
           value={data.size ?? ""}
+        />
+      </div>
+
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="size" className="text-right">
+          License
+        </Label>
+        <ComboboxSelect
+          options={licenses}
+          valueToDisplay={(value: any) => value.name}
+          value={data.license_id.toString() ?? ""}
+          onChange={(value) => setData({ ...data, license_id: value })}
+          placeholder={"Select License"}
+          disabled={false}
         />
       </div>
     </>

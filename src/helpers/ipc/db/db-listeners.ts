@@ -8,6 +8,11 @@ import {
   DB_SEARCH_PRODUCTS,
   DB_CREATE_CONNECTION,
   DB_GET_CONNECTIONS,
+  DB_CREATE_LICENSE,
+  DB_DELETE_LICENSE,
+  DB_GET_LICENSES,
+  DB_SEARCH_LICENSES,
+  DB_UPDATE_LICENSE,
 } from "./db-channels";
 
 import {
@@ -41,7 +46,7 @@ export function addDBEventListeners() {
 
   ipcMain.handle(DB_CREATE_PRODUCT, async (event, data) => {
     try {
-      return await executeQuery("INSERT INTO products (brand, model, type, rating, size) VALUES (?, ?, ?, ?, ?)", [data.brand, data.model, data.type, data.rating, data.size]);
+      return await executeQuery("INSERT INTO products (sku, brand, model, type, rating, size, license_id) VALUES (?, ?, ?, ?, ?, ?, ?)", [data.sku, data.brand, data.model, data.type, data.rating, data.size, data.license_id]);
     } catch (error) {
       return false;
     }
@@ -57,7 +62,7 @@ export function addDBEventListeners() {
 
   ipcMain.handle(DB_SEARCH_PRODUCTS, async (event, data) => {
     try {
-      return await fetchAll("SELECT * FROM products WHERE brand LIKE ? OR model LIKE ? OR type LIKE ? OR rating LIKE ? OR size LIKE ?", [`%${data}%`, `%${data}%`, `%${data}%`, `%${data}%`, `%${data}%`]);
+      return await fetchAll("SELECT * FROM products WHERE sku LIKE ? OR brand LIKE ? OR model LIKE ? OR type LIKE ? OR rating LIKE ? OR size LIKE ? or license_id LIKE ?", [`%${data}%`, `%${data}%`, `%${data}%`, `%${data}%`, `%${data}%`, `%${data}%`, `%${data}%`]);
     } catch (error) {
       return false;
     }
@@ -65,7 +70,7 @@ export function addDBEventListeners() {
 
   ipcMain.handle(DB_UPDATE_PRODUCT, async (event, data) => {
     try {
-      return await executeQuery("UPDATE products SET brand = ?, model = ?, type = ?, rating = ?, size = ? WHERE id = ?", [data.brand, data.model, data.type, data.rating, data.size, data.id]);
+      return await executeQuery("UPDATE products SET sku = ?, brand = ?, model = ?, type = ?, rating = ?, size = ?, license_id = ? WHERE id = ?", [data.sku, data.brand, data.model, data.type, data.rating, data.size, data.license_id, data.id]);
     } catch (error) {
       return false;
     }
@@ -74,6 +79,47 @@ export function addDBEventListeners() {
   ipcMain.handle(DB_DELETE_PRODUCT, async (event, data) => {
     try {
       return await executeQuery("DELETE FROM products WHERE id = ?", [data]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  // licenses
+  ipcMain.handle(DB_CREATE_LICENSE, async (event, data) => {
+    try {
+      return await executeQuery("INSERT INTO licenses (name, code) VALUES (?, ?)", [data.name, data.code]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_GET_LICENSES, async (event, data) => {
+    try {
+      return await fetchAll("SELECT * FROM licenses");
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_SEARCH_LICENSES, async (event, data) => {
+    try {
+      return await fetchAll("SELECT * FROM licenses WHERE name LIKE ? OR code LIKE ? ", [`%${data}%`, `%${data}%`]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_UPDATE_LICENSE, async (event, data) => {
+    try {
+      return await executeQuery("UPDATE licenses SET name = ?, code = ? WHERE id = ?", [data.name, data.code, data.id]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_DELETE_LICENSE, async (event, data) => {
+    try {
+      return await executeQuery("DELETE FROM licenses WHERE id = ?", [data]);
     } catch (error) {
       return false;
     }
@@ -97,7 +143,7 @@ export function addDBEventListeners() {
 
   ipcMain.handle(DB_GET_CONNECTIONS, async (event) => {
     try {
-      let data:any = await fetchOne("SELECT * FROM connections ORDER BY id DESC LIMIT 1");
+      let data: any = await fetchOne("SELECT * FROM connections ORDER BY id DESC LIMIT 1");
       return data
     } catch (error) {
       return error;

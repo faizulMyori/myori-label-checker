@@ -55,6 +55,16 @@ export default function NavigationMenu() {
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
+              <Link to="/license" onClick={() => {
+                setActiveTab("/license");
+                setRoute("/license");
+              }}>
+                <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/license" })}>
+                  {t("titleLicensePage")}
+                </NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
               <Link to="/production" onClick={() => {
                 setActiveTab("/production");
                 setRoute("/production");

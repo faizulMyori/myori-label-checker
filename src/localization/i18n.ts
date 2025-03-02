@@ -12,13 +12,7 @@ i18n.use(initReactI18next).init({
         titleProductionPage: "Production",
         titleHistoryPage: "History",
         titleSettingPage: "Settings",
-      },
-    },
-    "pt-BR": {
-      translation: {
-        appName: "MyORI Label Checker",
-        titleHomePage: "Página Inicial",
-        titleSecondPage: "Segunda Página",
+        titleLicensePage: "License",
       },
     },
   },
