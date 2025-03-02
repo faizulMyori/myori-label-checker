@@ -11,10 +11,10 @@ import React from "react"
 import { UserContext } from "@/App"
 
 export default function ConnectionPage() {
-    const [connectionStatus, setConnectionStatus] = useState<"idle" | "connecting" | "connected" | "failed" | "disconnecting">("idle")
     const [host, setHost] = useState("")
     const [port, setPort] = useState("")
     const { conn, setConn }: any = useContext(UserContext);
+    const [connectionStatus, setConnectionStatus] = useState<"idle" | "connecting" | "connected" | "failed" | "disconnecting">(conn)
 
     const handleConnect = () => {
         setConnectionStatus("connecting")
@@ -46,22 +46,9 @@ export default function ConnectionPage() {
 
     useEffect(() => {
         window.sqlite.get_connections().then((resp: any) => {
-            // console.log(resp)
             if (resp) {
                 setHost(resp.ip)
                 setPort(resp.port)
-                window.tcpConnection.tcp_connect({ ip: resp.ip, port: resp.port }).then((data: any) => {
-                    console.log(data)
-                    setConnectionStatus("connected")
-                    setConn("connected")
-                }).catch((err: any) => {
-                    if (err) {
-                        setConnectionStatus("failed")
-                        setConn("failed")
-                    }
-                })
-                setConnectionStatus("connecting")
-                setConn("connecting")
             } else {
                 setConnectionStatus("failed")
                 setConn("failed")
@@ -71,7 +58,7 @@ export default function ConnectionPage() {
         window.tcpConnection.tcp_closed(renderConnectionStatus)
     }, [])
 
-    const renderConnectionStatus = useCallback((data: any) => {
+    const renderConnectionStatus = useCallback(() => {
         setConnectionStatus("idle")
         setConn("idle")
     }, [connectionStatus])
@@ -105,11 +92,6 @@ export default function ConnectionPage() {
                         </SelectContent>
                     </Select>
                 </div>
-
-                {/* <div className="flex items-center space-x-2">
-                    <Switch id="keep-alive" />
-                    <Label htmlFor="keep-alive">Keep connection alive</Label>
-                </div> */}
             </CardContent>
             <CardFooter className="flex justify-between">
                 {connectionStatus === "connected" ? (

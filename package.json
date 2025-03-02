@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "start": "electron-forge start",
-    "bikin": "npx @electron/packager .",
+    "bikin": "npx @electron/packager . --overwrite",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
