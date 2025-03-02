@@ -33,6 +33,12 @@ interface sqlite {
   update_license: (data: any) => Promise<void>;
   delete_license: (id: any) => Promise<void>;
 
+  create_user: (data: any) => Promise<void>;
+  get_users: () => Promise<void>;
+  search_users: (query: string) => Promise<void>;
+  update_user: (data: any) => Promise<void>;
+  delete_user: (id: any) => Promise<void>;
+
   create_connection: (ip: any, port: any) => Promise<void>;
   get_connections: () => Promise<void>;
 }

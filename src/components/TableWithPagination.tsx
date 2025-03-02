@@ -45,6 +45,7 @@ interface ReusableTableProps {
     onAdd?: (e: React.MouseEvent) => void
     addPermission?: string
     onClickRow?: (item: any) => void
+    canAdd?: boolean
 }
 
 export default function TableWithPagination({
@@ -58,7 +59,8 @@ export default function TableWithPagination({
     onPageChange,
     onAdd,
     addPermission,
-    onClickRow
+    onClickRow,
+    canAdd
 }: ReusableTableProps) {
     const [searchValue, setSearchValue] = useState('')
     // const permissions = usePage().props.auth.permissions
@@ -172,7 +174,7 @@ export default function TableWithPagination({
         <>
             <div className="flex items-center mb-2">
                 <div className="ml-auto flex items-center gap-2">
-                    {onAdd && (
+                    {canAdd && (
                         <Button
                             size="sm"
                             className="h-8 gap-1"
@@ -237,7 +239,7 @@ export default function TableWithPagination({
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                             <DropdownMenuSeparator />
-                                                            {actions.map((action, index) => (
+                                                            {canAdd && actions.map((action, index) => (
                                                                 <div key={index}>
                                                                     <DropdownMenuItem
                                                                         key={typeof action.label === 'string' ? action.label : 'dynamic-label'}

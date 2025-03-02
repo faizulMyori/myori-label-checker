@@ -55,13 +55,13 @@ export default function ConnectionPage() {
             }
         })
 
-        window.tcpConnection.tcp_closed(renderConnectionStatus)
+        // window.tcpConnection.tcp_closed(renderConnectionStatus)
     }, [])
 
-    const renderConnectionStatus = useCallback(() => {
-        setConnectionStatus("idle")
-        setConn("idle")
-    }, [connectionStatus])
+    // const renderConnectionStatus = useCallback(() => {
+    //     setConnectionStatus("idle")
+    //     setConn("idle")
+    // }, [connectionStatus])
 
     return (
         <Card>

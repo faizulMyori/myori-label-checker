@@ -11,7 +11,12 @@ import {
   DB_SEARCH_LICENSES,
   DB_DELETE_LICENSE,
   DB_GET_LICENSES,
-  DB_UPDATE_LICENSE
+  DB_UPDATE_LICENSE,
+  DB_CREATE_USER,
+  DB_DELETE_USER,
+  DB_GET_USERS,
+  DB_SEARCH_USERS,
+  DB_UPDATE_USER
 } from "./db-channels";
 
 export function exposeDBContext() {
@@ -30,6 +35,12 @@ export function exposeDBContext() {
     search_licenses: (query: string) => ipcRenderer.invoke(DB_SEARCH_LICENSES, query),
     update_license: (data: any) => ipcRenderer.invoke(DB_UPDATE_LICENSE, data),
     delete_license: (id: number) => ipcRenderer.invoke(DB_DELETE_LICENSE, id),
+
+    create_user: (data: any) => ipcRenderer.invoke(DB_CREATE_USER, data),
+    get_users: () => ipcRenderer.invoke(DB_GET_USERS),
+    search_users: (query: string) => ipcRenderer.invoke(DB_SEARCH_USERS, query),
+    update_user: (data: any) => ipcRenderer.invoke(DB_UPDATE_USER, data),
+    delete_user: (id: number) => ipcRenderer.invoke(DB_DELETE_USER, id),
 
     create_connection: (ip: any, port: any) => ipcRenderer.invoke(DB_CREATE_CONNECTION, { ip, port }),
     get_connections: () => ipcRenderer.invoke(DB_GET_CONNECTIONS),

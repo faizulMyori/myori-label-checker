@@ -188,6 +188,7 @@ export default function Index() {
             onSearch={handleSearch}
             onPageChange={handlePageChange}
             onAdd={handleAdd}
+            canAdd={true}
           />
         </div>
       </div>
@@ -212,7 +213,7 @@ export default function Index() {
           <ConfirmDialog
             open={deleteDialog}
             setConfirm={handleConfirmDelete}
-            title="Confirm to logout?"
+            title="Confirm to delete?"
             setOpen={setOpenDeleteDialog}
           />
         )

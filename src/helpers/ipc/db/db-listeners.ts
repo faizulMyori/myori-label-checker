@@ -13,6 +13,11 @@ import {
   DB_GET_LICENSES,
   DB_SEARCH_LICENSES,
   DB_UPDATE_LICENSE,
+  DB_CREATE_USER,
+  DB_DELETE_USER,
+  DB_GET_USERS,
+  DB_SEARCH_USERS,
+  DB_UPDATE_USER,
 } from "./db-channels";
 
 import {
@@ -20,7 +25,7 @@ import {
   fetchAll,
   fetchOne,
 } from "sqlite-electron";
-import { checkPassword } from "../../password_helpers";
+import { checkPassword, hashPassword } from "../../password_helpers";
 
 export function addDBEventListeners() {
   ipcMain.handle(DB_LOGIN, async (event, data) => {
@@ -124,6 +129,48 @@ export function addDBEventListeners() {
       return false;
     }
   });
+
+  // users
+  ipcMain.handle(DB_CREATE_USER, async (event, data) => {
+    try {
+      return await executeQuery("INSERT INTO users (username, password) VALUES (?, ?)", [data.username, hashPassword(data.password)]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_GET_USERS, async (event, data) => {
+    try {
+      return await fetchAll("SELECT * FROM users");
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_SEARCH_USERS, async (event, data) => {
+    try {
+      return await fetchAll("SELECT * FROM users WHERE username LIKE ? ", [`%${data}%`]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_UPDATE_USER, async (event, data) => {
+    try {
+      return await executeQuery("UPDATE users SET username = ? WHERE id = ?", [data.username, data.id]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_DELETE_USER, async (event, data) => {
+    try {
+      return await executeQuery("DELETE FROM users WHERE id = ?", [data]);
+    } catch (error) {
+      return false;
+    }
+  });
+
 
   ipcMain.handle(DB_CREATE_CONNECTION, async (event, data) => {
     // console.log(data)
