@@ -3,7 +3,8 @@ import {
   TCP_CLOSED,
   TCP_DISCONNECT,
   TCP_ERROR,
-  TCP_RECEIVE
+  TCP_RECEIVE,
+  TCP_SEND
 } from "./tcp-channels";
 
 export function exposeTCPContext() {
@@ -13,5 +14,6 @@ export function exposeTCPContext() {
     tcp_received: (callback: any) => ipcRenderer.on(TCP_RECEIVE, (_: any, data: any) => callback(data)),
     tcp_closed: (callback: any) => ipcRenderer.on(TCP_CLOSED, callback),
     tcp_disconnect: () => ipcRenderer.invoke(TCP_DISCONNECT),
+    tcp_send: (data: any) => ipcRenderer.invoke(TCP_SEND, data),
   });
 }

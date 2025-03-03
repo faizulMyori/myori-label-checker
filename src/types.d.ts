@@ -48,6 +48,7 @@ interface tcpConnection {
   tcp_disconnect: () => Promise<void>;
   tcp_closed: (callback: any) => Promise<void>;
   tcp_received: (callback: any) => Promise<void>;
+  tcp_send: (data: any) => Promise<void>;
 }
 
 interface excel {

@@ -345,6 +345,13 @@ export default function ProductionPage() {
             }
             return prevDuplicates;
           });
+          
+          window.tcpConnection.tcp_send("@0001\r").then(() => {
+            setProductionStatus("IDLE");
+          }).catch((error:any) => {
+            console.error("Failed to send command:", error);
+          });
+
           return prevData; // Don't add again
         }
 
