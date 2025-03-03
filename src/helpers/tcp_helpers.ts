@@ -75,7 +75,7 @@ export function sendData(cmd: string) {
     //8 = DO3
     //9 = DO0 & DO3
     //10 = DO4
-
+    console.log(cmd)
     sendDconCommand(cmd)
         .then((response) => {
             // if (cmd !== '@0100\r') sendData('@0100\r')
@@ -88,6 +88,8 @@ export function sendData(cmd: string) {
 
 function sendDconCommand(command:string) {
     return new Promise((resolve, reject) => {
+        // write to dcon rs485
+        
         client.write(command, 'ascii', (err:any) => {
             if (err) {
                 return reject(err);

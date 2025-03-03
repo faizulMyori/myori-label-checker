@@ -54,14 +54,11 @@ export default function ConnectionPage() {
                 setConn("failed")
             }
         })
-
-        // window.tcpConnection.tcp_closed(renderConnectionStatus)
     }, [])
 
-    // const renderConnectionStatus = useCallback(() => {
-    //     setConnectionStatus("idle")
-    //     setConn("idle")
-    // }, [connectionStatus])
+    useEffect(() => {
+        setConnectionStatus(conn)
+    }, [conn])
 
     return (
         <Card>

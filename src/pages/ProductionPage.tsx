@@ -283,7 +283,7 @@ export default function ProductionPage() {
 
     const handleTcpData = (data: any) => {
       let [serial, url, status] = data.split(',').map((data: string) => data.trim());
-      console.log("Received Data:", serial, url, status);
+      console.log("Received Data:", data);
 
       if (!status) return; // Ignore invalid data
       if (productionStatus !== "RUNNING") return;
@@ -346,11 +346,7 @@ export default function ProductionPage() {
             return prevDuplicates;
           });
           
-          window.tcpConnection.tcp_send("@0001\r").then(() => {
-            setProductionStatus("IDLE");
-          }).catch((error:any) => {
-            console.error("Failed to send command:", error);
-          });
+          window.tcpConnection.tcp_send("@0101\r")
 
           return prevData; // Don't add again
         }

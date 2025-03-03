@@ -13,7 +13,6 @@ export function addTCPEventListeners() {
   ipcMain.handle(TCP_CONNECT, async (event, { ip, port }) => connectTcp(ip, port, event));
   ipcMain.handle(TCP_DISCONNECT, async () => closeTcpConnection());
   ipcMain.handle(TCP_SEND, async (event, data) => sendData(data));
-  // ipcMain.on(TCP_RECEIVE, (event, data) => event.sender.send(TCP_RECEIVE, data));
 }
 
 
