@@ -288,18 +288,42 @@ export default function ProductionPage() {
       if (!status) return; // Ignore invalid data
       if (productionStatus !== "RUNNING") return;
 
-      // Handle missing serial case
+      setCapturedData((prevData) => {
+        if (prevData.length > 0) {
+          const lastEntry = prevData[prevData.length - 1];
+          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/);
+
+          if (match) {
+            const prefix = match[1];
+            const lastSerialNum = parseInt(match[2], 10);
+            const numLength = match[2].length;
+
+            const currentMatch = serial.match(/^([A-Za-z]+)(\d+)$/);
+            if (currentMatch) {
+              const currentSerialNum = parseInt(currentMatch[2], 10);
+              if (currentSerialNum > lastSerialNum + 1) {
+                for (let i = lastSerialNum + 1; i < currentSerialNum; i++) {
+                  const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`;
+                  setMissingData((prevMissing) => [...prevMissing, { serial: skippedSerial, url: lastEntry.url, status: "MISSING" }]);
+                }
+              }
+            }
+          }
+        }
+        return prevData;
+      });
+
       if (!serial || !url) {
         setCapturedData((prevData) => {
           if (prevData.length === 0) return prevData;
 
           const lastEntry = prevData[prevData.length - 1];
           const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/);
-          if (!match) return prevData; // Invalid format, skip
+          if (!match) return prevData;
 
-          const prefix = match[1]; // Extract prefix
-          const lastSerialNum = parseInt(match[2], 10); // Extract numeric part
-          const numLength = match[2].length; // Preserve number format
+          const prefix = match[1];
+          const lastSerialNum = parseInt(match[2], 10);
+          const numLength = match[2].length;
 
           const newSerialNum = lastSerialNum + 1;
           serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`;
@@ -313,7 +337,6 @@ export default function ProductionPage() {
         return;
       }
 
-      // Validate serial against label rolls
       const serialNum = parseInt(serial.replace(/\D/g, ""), 10);
       const isValidSerial = labelRolls.some(({ startNumber, endNumber }) => {
         const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/);
@@ -322,8 +345,7 @@ export default function ProductionPage() {
 
         const startPrefix = startMatch[1];
         const endPrefix = endMatch[1];
-
-        if (startPrefix !== endPrefix) return false; // Ensure prefix consistency
+        if (startPrefix !== endPrefix) return false;
 
         const start = parseInt(startMatch[2], 10);
         const end = parseInt(endMatch[2], 10);
@@ -334,10 +356,8 @@ export default function ProductionPage() {
       if (!isValidSerial) return;
 
       setCapturedData((prevData) => {
-        // Check if serial is already captured
         const alreadyCaptured = prevData.some(entry => entry.serial === serial);
 
-        // If serial is a duplicate, add to duplicatedData
         if (alreadyCaptured) {
           setDuplicatedData((prevDuplicates) => {
             if (!prevDuplicates.some(dup => dup.serial === serial)) {
@@ -345,13 +365,11 @@ export default function ProductionPage() {
             }
             return prevDuplicates;
           });
-          
-          window.tcpConnection.tcp_send("@0101\r")
 
-          return prevData; // Don't add again
+          window.tcpConnection.tcp_send("@0101\r")
+          return prevData;
         }
 
-        // Exclude manual rejected entries
         if (manualRejectEntries.some(entry => entry.serialNumber === serial)) {
           return prevData;
         }
@@ -360,13 +378,13 @@ export default function ProductionPage() {
       });
     };
 
-    // Attach event listener only once
     window.tcpConnection.tcp_received(handleTcpData);
 
     return () => {
-      window.tcpConnection.tcp_received(null); // Cleanup to prevent multiple bindings
+      window.tcpConnection.tcp_received(null);
     };
-  }, [productionStatus]); // Empty dependency array to run only once
+  }, [productionStatus]);
+
 
   // Generate list of all possible serials
   const totalSerials = labelRolls.flatMap(({ startNumber, endNumber }) => {
