@@ -1,4 +1,5 @@
 import { exposeDBContext } from "./db/db-context";
+import { exposeDiskContext } from "./disk/disk-context";
 import { exposeExcelContext } from "./excel/excel-context";
 import { exposeSERIALContext } from "./serial/serial-context";
 import { exposeTCPContext } from "./tcp/tcp-context";
@@ -12,4 +13,5 @@ export default function exposeContexts() {
   exposeTCPContext();
   exposeExcelContext();
   exposeSERIALContext();
+  exposeDiskContext();
 }

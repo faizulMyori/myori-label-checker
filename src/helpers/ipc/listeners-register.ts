@@ -5,6 +5,7 @@ import { addDBEventListeners } from "./db/db-listeners";
 import { addTCPEventListeners } from "./tcp/tcp-listeners";
 import { addExcelEventListeners } from "./excel/excel-listeners";
 import { addSERIALEventListeners } from "./serial/serial-listeners";
+import { addDiskEventListeners } from "./disk/disk-listeners";
 
 export default function registerListeners(mainWindow: BrowserWindow) {
   addWindowEventListeners(mainWindow);
@@ -13,4 +14,5 @@ export default function registerListeners(mainWindow: BrowserWindow) {
   addTCPEventListeners();
   addExcelEventListeners(mainWindow);
   addSERIALEventListeners();
+  addDiskEventListeners();
 }

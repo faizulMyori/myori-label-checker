@@ -15,8 +15,8 @@ export default function SettingLayout({ children, nav, setNav }: { children: Rea
             url: 'user management'
         },
         {
-            title: 'Appereance',
-            url: 'appereance'
+            title: 'Misc.',
+            url: 'misc'
         },
     ];
     return (

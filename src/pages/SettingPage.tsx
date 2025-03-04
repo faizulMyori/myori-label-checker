@@ -8,7 +8,7 @@ import { Link } from "@tanstack/react-router";
 import SettingLayout from "@/layouts/SettingLayout";
 import ConnectionPage from "./settings/ConnectionPage";
 import UserManagementPage from "./settings/UserManagementPage";
-import AppereancePage from "./settings/AppereancePage";
+import MiscPage from "./settings/MiscPage";
 
 export default function SettingPage() {
   const [nav, setNav] = React.useState('connection');
@@ -29,8 +29,8 @@ export default function SettingPage() {
       }
 
       {
-        nav === 'appereance' && (
-          <AppereancePage />
+        nav === 'misc' && (
+          <MiscPage />
         )
       }
     </SettingLayout>

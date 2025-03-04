@@ -6,12 +6,23 @@ import { toggleTheme, getTheme, setTheme } from "@/helpers/theme_helpers";
 import { ThemeMode } from '@/types/theme-mode';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import StorageBar from '@/components/StorageBar';
 
-export default function AppearancePage({ className = '', ...props }: HTMLAttributes<HTMLDivElement>) {
+export default function MiscPage({ className = '', ...props }: HTMLAttributes<HTMLDivElement>) {
   const [themeNow, setThemeNow] = React.useState<ThemeMode | null>(null);
+  const [storage, setStorage] = React.useState({
+    diskPath: '',
+    free: 0,
+    size: 0
+  });
   useEffect(() => {
     (async () => {
       setThemeNow(await getTheme());
+      window.disk.disk_get().then((result: any) => setStorage({
+        diskPath: result.diskPath,
+        free: result.free,
+        size: result.size
+      }));
     })();
   }, []);
 
@@ -24,8 +35,8 @@ export default function AppearancePage({ className = '', ...props }: HTMLAttribu
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Appearance</CardTitle>
-        <CardDescription>Configure your appearance</CardDescription>
+        <CardTitle>Misc. Settings</CardTitle>
+        <CardDescription>Configure your settings</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -53,6 +64,8 @@ export default function AppearancePage({ className = '', ...props }: HTMLAttribu
             </div>
           </div>
         </div>
+        <Label htmlFor="storage">Storage</Label>
+        <StorageBar storage={storage} />
       </CardContent>
     </Card>
   );

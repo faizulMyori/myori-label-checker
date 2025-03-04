@@ -63,6 +63,10 @@ interface serial {
   serial_com_disconnect: () => Promise<void>;
 }
 
+interface disk {
+  disk_get: () => Promise<void>;
+}
+
 declare interface Window {
   themeMode: ThemeModeContext;
   electronWindow: ElectronWindow;
@@ -70,4 +74,5 @@ declare interface Window {
   tcpConnection: tcpConnection;
   excel: excel;
   serial: serial;
+  disk: disk;
 }
