@@ -42,7 +42,7 @@ export function exposeDBContext() {
     update_user: (data: any) => ipcRenderer.invoke(DB_UPDATE_USER, data),
     delete_user: (id: number) => ipcRenderer.invoke(DB_DELETE_USER, id),
 
-    create_connection: (ip: any, port: any) => ipcRenderer.invoke(DB_CREATE_CONNECTION, { ip, port }),
+    create_connection: (ip: any, port: any, com: any) => ipcRenderer.invoke(DB_CREATE_CONNECTION, { ip, port, com }),
     get_connections: () => ipcRenderer.invoke(DB_GET_CONNECTIONS),
   });
 }

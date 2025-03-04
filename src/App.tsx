@@ -36,8 +36,8 @@ export default function App() {
         if (resp) {
           setConn("connecting");
           try {
-            const data = await window.tcpConnection.tcp_connect({ ip: resp.ip, port: resp.port });
-            console.log(data);
+            await window.tcpConnection.tcp_connect({ ip: resp.ip, port: resp.port });
+            await window.serial.serial_com_open({ com: resp.com })
             setConn("connected");
           } catch {
             setConn("failed");

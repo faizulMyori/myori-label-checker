@@ -366,7 +366,7 @@ export default function ProductionPage() {
             return prevDuplicates;
           });
 
-          window.tcpConnection.tcp_send("@0101\r")
+          window.serial.serial_com_send("@0101\r")
           return prevData;
         }
 

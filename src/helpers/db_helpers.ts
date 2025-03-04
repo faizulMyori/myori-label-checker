@@ -86,6 +86,7 @@ async function initializeConnectionsDatabase() {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           ip TEXT NOT NULL,
           port INTEGER NOT NULL,
+          com TEXT NULL,
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;

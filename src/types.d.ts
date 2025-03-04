@@ -39,7 +39,7 @@ interface sqlite {
   update_user: (data: any) => Promise<void>;
   delete_user: (id: any) => Promise<void>;
 
-  create_connection: (ip: any, port: any) => Promise<void>;
+  create_connection: (ip: any, port: any, com: any) => Promise<void>;
   get_connections: () => Promise<void>;
 }
 
@@ -55,10 +55,19 @@ interface excel {
   save_to_excel: (metadata: any, data: any, title: string) => Promise<void>;
 }
 
+interface serial {
+  serial_com_get: () => Promise<void>;
+  serial_com_open: (port: any) => Promise<void>;
+  serial_com_close: () => Promise<void>;
+  serial_com_send: (data: any) => Promise<void>;
+  serial_com_disconnect: () => Promise<void>;
+}
+
 declare interface Window {
   themeMode: ThemeModeContext;
   electronWindow: ElectronWindow;
   sqlite: sqlite;
   tcpConnection: tcpConnection;
-  excel: excel
+  excel: excel;
+  serial: serial;
 }

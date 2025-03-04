@@ -182,7 +182,7 @@ export function addDBEventListeners() {
         await executeQuery("DELETE * FROM connections");
       }
 
-      return await executeQuery("INSERT INTO connections (ip, port) VALUES (?, ?)", [data.ip, data.port]);
+      return await executeQuery("INSERT INTO connections (ip, port, com) VALUES (?, ?, ?)", [data.ip, data.port, data.com]);
     } catch (error) {
       return false;
     }

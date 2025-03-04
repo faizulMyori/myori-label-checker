@@ -12,17 +12,26 @@ import { UserContext } from "@/App"
 
 export default function ConnectionPage() {
     const [host, setHost] = useState("")
+    const [coms, setComs] = useState([])
     const [port, setPort] = useState("")
+    const [com, setCom] = useState("")
     const { conn, setConn }: any = useContext(UserContext);
     const [connectionStatus, setConnectionStatus] = useState<"idle" | "connecting" | "connected" | "failed" | "disconnecting">(conn)
 
     const handleConnect = () => {
         setConnectionStatus("connecting")
         setConn("connecting")
-        window.sqlite.create_connection(host, port).then(() => {
-            window.tcpConnection.tcp_connect({ ip: host, port: port }).then((data: any) => {
-                setConnectionStatus("connected")
-                setConn("connected")
+        window.sqlite.create_connection(host, port, com).then(() => {
+            window.tcpConnection.tcp_connect({ ip: host, port: port }).then(() => {
+                window.serial.serial_com_open({ com: com }).then(() => {
+                    setConnectionStatus("connected")
+                    setConn("connected")
+                }).catch((err: any) => {
+                    if (err) {
+                        setConnectionStatus("failed")
+                        setConn("failed")
+                    }
+                })
             }).catch((err: any) => {
                 if (err) {
                     setConnectionStatus("failed")
@@ -35,9 +44,10 @@ export default function ConnectionPage() {
     const handleDisconnect = () => {
         setConnectionStatus("disconnecting")
         setConn("disconnecting")
-        window.tcpConnection.tcp_disconnect().then((data: any) => {
+        window.tcpConnection.tcp_disconnect().then(async (data: any) => {
+            await window.serial.serial_com_disconnect()
             setConnectionStatus("idle")
-            setConn("disconnecting")
+            setConn("idle")
         }).catch((err: any) => {
             setConnectionStatus("idle")
             setConn("disconnecting")
@@ -49,9 +59,16 @@ export default function ConnectionPage() {
             if (resp) {
                 setHost(resp.ip)
                 setPort(resp.port)
+                setCom(resp.com)
             } else {
                 setConnectionStatus("failed")
                 setConn("failed")
+            }
+        })
+
+        window.serial.serial_com_get().then((resp: any) => {
+            if (resp) {
+                setComs(resp)
             }
         })
     }, [])
@@ -79,13 +96,19 @@ export default function ConnectionPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="connection-type">Connection Type</Label>
-                    <Select defaultValue="tcp">
-                        <SelectTrigger id="connection-type">
-                            <SelectValue placeholder="Select connection type" />
+                    <Label htmlFor="com">COM PORT</Label>
+                    <Select onValueChange={(e) => setCom(e)} value={com}>
+                        <SelectTrigger id="com">
+                            <SelectValue placeholder="Select COM port" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="tcp">TCP</SelectItem>
+                            {
+                                coms.map((com: any) => {
+                                    return (
+                                        <SelectItem key={com.path} value={com.path}>{com.path}</SelectItem>
+                                    )
+                                })
+                            }
                         </SelectContent>
                     </Select>
                 </div>
