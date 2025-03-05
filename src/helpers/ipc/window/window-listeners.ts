@@ -1,6 +1,7 @@
-import { BrowserWindow, ipcMain } from "electron";
+import { BrowserWindow, ipcMain, dialog } from "electron";
 import {
   WIN_CLOSE_CHANNEL,
+  WIN_DIALOG_INFO,
   WIN_MAXIMIZE_CHANNEL,
   WIN_MINIMIZE_CHANNEL,
 } from "./window-channels";
@@ -18,5 +19,16 @@ export function addWindowEventListeners(mainWindow: BrowserWindow) {
   });
   ipcMain.handle(WIN_CLOSE_CHANNEL, () => {
     mainWindow.close();
+  });
+
+  ipcMain.on(WIN_DIALOG_INFO, async (data: any) => {
+    if (mainWindow) {
+      dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: data.title,
+        message: data.message,
+        buttons: ['OK']
+      });
+    }
   });
 }

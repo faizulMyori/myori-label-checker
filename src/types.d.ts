@@ -65,6 +65,7 @@ interface serial {
 
 interface disk {
   disk_get: () => Promise<void>;
+  disk_check_space: () => Promise<void>;
 }
 
 declare interface Window {

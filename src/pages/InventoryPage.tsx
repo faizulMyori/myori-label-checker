@@ -126,22 +126,24 @@ export default function Index() {
   }
 
   useEffect(() => {
-    try {
-      window.sqlite.get_products().then((d: any) => {
-        setProducts({
-          ...products,
-          data: d,
-        })
+    if (!deleteDialog || !openForm) {
+      try {
+        window.sqlite.get_products().then((d: any) => {
+          setProducts({
+            ...products,
+            data: d,
+          })
 
-        window.sqlite.get_licenses().then((l: any) => {
-          console.log(l)
-          setLicenses(l)
+          window.sqlite.get_licenses().then((l: any) => {
+            console.log(l)
+            setLicenses(l)
+          })
         })
-      })
-    } catch (error) {
-      console.log(error)
+      } catch (error) {
+        console.log(error)
+      }
     }
-  }, [])
+  }, [openForm, deleteDialog])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

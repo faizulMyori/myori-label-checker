@@ -18,12 +18,14 @@ export default function Index() {
     prev_page_url: null,
   })
 
-  const [formType, setFormType] = useState<'create' | 'update'>('create')
-  const [form, setForm] = useState({
+  const initialState = {
     id: 0,
     code: '',
     name: '',
-  });
+  }
+
+  const [formType, setFormType] = useState<'create' | 'update'>('create')
+  const [form, setForm] = useState(initialState);
   const [openForm, setOpenForm] = useState(false);
   const [deleteDialog, setOpenDeleteDialog] = useState(false);
 
@@ -85,6 +87,7 @@ export default function Index() {
   }
 
   const handleAdd = (e: React.MouseEvent) => {
+    setForm(initialState)
     setOpenForm(true)
     setFormType('create')
   }
@@ -100,19 +103,21 @@ export default function Index() {
   }
 
   useEffect(() => {
-    try {
-      window.sqlite.get_licenses().then((d: any) => {
-        setLicenses({
-          ...licenses,
-          data: d,
-        })
+    if (!deleteDialog || !openForm) {
+      try {
+        window.sqlite.get_licenses().then((d: any) => {
+          setLicenses({
+            ...licenses,
+            data: d,
+          })
 
-        console.log(licenses)
-      })
-    } catch (error) {
-      console.log(error)
+          console.log(licenses)
+        })
+      } catch (error) {
+        console.log(error)
+      }
     }
-  }, [])
+  }, [openForm, deleteDialog])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

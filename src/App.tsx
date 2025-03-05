@@ -50,6 +50,14 @@ export default function App() {
       }
     };
     handleConnection();
+    window.disk.disk_check_space().then(
+      (resp: any) => {
+        if (resp) {
+          console.log(resp)
+          // setConn("idle");
+        }
+      }
+    )
     window.tcpConnection.tcp_closed(renderConnectionStatus);
   }, []);
 
