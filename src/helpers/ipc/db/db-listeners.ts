@@ -28,6 +28,7 @@ import {
   DB_GET_LABELS,
   DB_SEARCH_LABELS,
   DB_UPDATE_LABEL,
+  DB_FIND_LABEL,
 } from "./db-channels";
 
 import {
@@ -36,6 +37,7 @@ import {
   fetchOne,
 } from "sqlite-electron";
 import { checkPassword, hashPassword } from "../../password_helpers";
+import { WIN_DIALOG_INFO } from "../window/window-channels";
 
 export function addDBEventListeners() {
   ipcMain.handle(DB_LOGIN, async (event, data) => {
@@ -257,6 +259,25 @@ export function addDBEventListeners() {
     }
   });
 
+  ipcMain.handle(DB_FIND_LABEL, async (event, data) => {
+    let startNo = data.startNumber || "";
+    let endNo = data.endNumber || "";
+
+    try {
+      let data: any = await fetchAll("SELECT * FROM labels WHERE serial BETWEEN ? AND ?", [startNo, endNo]);
+      if (data.length > 0) {
+        let serials = data.map((item: any) => item.serial);
+        ipcMain.emit(WIN_DIALOG_INFO, {
+          title: "Overlap Found",
+          message: `Overlap Serials: ${serials.join(", ")}`,
+        });
+      }
+      return data
+    } catch (error) {
+      return false;
+    }
+  });
+
   ipcMain.handle(DB_DELETE_LABEL, async (event, data) => {
     try {
       return await executeQuery("DELETE FROM labels WHERE id = ?", [data]);
@@ -268,14 +289,9 @@ export function addDBEventListeners() {
   ipcMain.handle(DB_CREATE_CONNECTION, async (event, data) => {
     // console.log(data)
     try {
-      let checkIfAnyConnectionExisted = await fetchAll("SELECT * FROM connections");
+      let deleteConnection = await executeQuery("DELETE FROM connections");
 
-      if (checkIfAnyConnectionExisted.length > 0) {
-        //delete existing connection
-        await executeQuery("DELETE * FROM connections");
-      }
-
-      return await executeQuery("INSERT INTO connections (ip, port, com) VALUES (?, ?, ?)", [data.ip, data.port, data.com]);
+      if (deleteConnection) return await executeQuery("INSERT INTO connections (ip, port, com) VALUES (?, ?, ?)", [data.ip, data.port, data.com]);
     } catch (error) {
       return false;
     }

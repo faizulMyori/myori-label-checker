@@ -26,7 +26,8 @@ import {
   DB_DELETE_LABEL,
   DB_GET_LABELS,
   DB_SEARCH_LABELS,
-  DB_UPDATE_LABEL
+  DB_UPDATE_LABEL,
+  DB_FIND_LABEL
 } from "./db-channels";
 
 export function exposeDBContext() {
@@ -63,6 +64,7 @@ export function exposeDBContext() {
     search_labels: (query: string) => ipcRenderer.invoke(DB_SEARCH_LABELS, query),
     update_label: (data: any) => ipcRenderer.invoke(DB_UPDATE_LABEL, data),
     delete_label: (id: number) => ipcRenderer.invoke(DB_DELETE_LABEL, id),
+    check_serial_numbers: (data: any) => ipcRenderer.invoke(DB_FIND_LABEL, data),
 
     create_connection: (ip: any, port: any, com: any) => ipcRenderer.invoke(DB_CREATE_CONNECTION, { ip, port, com }),
     get_connections: () => ipcRenderer.invoke(DB_GET_CONNECTIONS),

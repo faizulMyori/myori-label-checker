@@ -50,7 +50,7 @@ interface sqlite {
   search_labels: (query: string) => Promise<void>;
   update_label: (data: any) => Promise<void>;
   delete_label: (id: any) => Promise<void>;
-
+  check_serial_numbers: (data: any) => Promise<void>;
 
   create_connection: (ip: any, port: any, com: any) => Promise<void>;
   get_connections: () => Promise<void>;

@@ -139,7 +139,15 @@ export default function ProductionPage() {
       const end = parseInt(endMatch[2], 10);
 
       if (!isNaN(start) && !isNaN(end) && end >= start) {
-        updateLabelRoll(id, "verified", true);
+        //check in database if serial number exists from start to end
+        let startNumber = roll.startNumber
+        let endNumber = roll.endNumber
+        window.sqlite.check_serial_numbers({ startNumber, endNumber }).then((data: any) => {
+          console.log(data)
+          if (data.length === 0) {
+            updateLabelRoll(id, "verified", true);
+          }
+        })
       }
     }
   };
@@ -187,6 +195,13 @@ export default function ProductionPage() {
   // Start production
   const startProduction = () => {
     setProductionStatus("RUNNING")
+    // reset all data except production data and revert label rolls
+    setLabelRolls(labelRolls.map((roll) => ({ ...roll, verified: true })))
+    setCapturedData([])
+    setManualRejectEntries([])
+    setDuplicatedData([])
+    setNewSerialNumber("")
+    setMissingData([])
   }
 
   // Stop production
@@ -488,10 +503,10 @@ export default function ProductionPage() {
                               disabled={productionStatus === "RUNNING"}
                               onChange={(e) => {
                                 setBatchNo(e.target.value)
-                                if (batches.length === 0 || batches.find((batch: any) => batch.batch_no !== e.target.value)) {
-                                  setBatchError(false)
-                                } else {
+                                if (batches.find((batch: any) => batch.batch_no === e.target.value)) {
                                   setBatchError(true)
+                                } else {
+                                  setBatchError(false)
                                 }
                               }}
                               className={`col-span-3 ${batchError ? "border-red-500" : ""}`}
