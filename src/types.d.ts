@@ -52,6 +52,12 @@ interface sqlite {
   delete_label: (id: any) => Promise<void>;
   check_serial_numbers: (data: any) => Promise<void>;
 
+  create_history: (data: any) => Promise<void>;
+  get_histories: () => Promise<void>;
+  search_histories: (query: string) => Promise<void>;
+  update_history: (data: any) => Promise<void>;
+  delete_history: (id: any) => Promise<void>;
+
   create_connection: (ip: any, port: any, com: any) => Promise<void>;
   get_connections: () => Promise<void>;
 }

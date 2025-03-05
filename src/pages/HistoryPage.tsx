@@ -1,196 +1,274 @@
 import React, { useState, useEffect } from 'react'
-import { ArrowUpDown } from 'lucide-react'
 import TableWithPagination from '@/components/TableWithPagination'
-import { Button } from '@/components/ui/button'
 import Footer from '@/components/template/Footer'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { FormDialog } from '@/components/FormDialog'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { set } from 'zod'
+import { Button } from '@/components/ui/button'
 
+export default function Index() {
+  const [histories, setHistories] = useState({
+    data: [],
+    total: 0,
+    from: 0,
+    to: 0,
+    per_page: 0,
+    current_page: 0,
+    next_page_url: null,
+    prev_page_url: null,
+  })
 
-export default function Index({ histories }: any) {
-  const [openNews, setOpenNews] = useState(false)
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
+  const [savedHistories, setSavedHistories] = useState([]);
+
   const [formType, setFormType] = useState<'create' | 'update'>('create')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-  const [sortColumn, setSortColumn] = useState<string>('variant_id')
-  const [openAudit, setOpenAudit] = useState(false);
-  const [auditData, setAuditData] = useState(null);
-  const [openConfirmationDialog, setOpenConfirmationDialog] = useState(false)
-  const [confirmTitle, setConfirmTitle] = useState('')
-
-  // const { data, setData, post, processing, errors, reset } = useForm({
-  //     id: '',
-  //     title: '',
-  //     desc: '',
-  //     type: '',
-  //     status: '0'
-  // })
-
-  // useEffect(() => {
-  //     if (!openNews) {
-  //         reset()
-  //     }
-  // }, [openNews])
+  const [form, setForm] = useState([]);
+  const [openForm, setOpenForm] = useState(false);
+  const [deleteDialog, setOpenDeleteDialog] = useState(false);
 
   const columns = [
     {
-      key: 'title',
-      label: <Button
-        variant="ghost"
-        onClick={() => handleSort('title')}
-      >
-        Title
-        < ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>,
+      key: 'batch_no',
+      label: 'Batch No.',
       hidden: false,
       render: (item: any) => (
-        item.title
+        item.batch_no
       )
     },
     {
-      key: 'updated_at',
-      style: 'hidden md:table-cell',
-      label: <Button
-        variant="ghost"
-        onClick={() => handleSort('updated_at')}
-      >
-        Updated At
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>,
+      key: 'serial_no',
+      label: 'Serial No.',
       hidden: false,
       render: (item: any) => (
-        new Date(item.updated_at).toLocaleDateString("en-GB")
+        <Button size={'sm'} onClick={() => {
+          setForm(item.labels)
+          setOpenForm(true)
+        }}>Open List</Button>
       )
     },
     {
-      key: 'notify',
-      label: 'Notify',
+      key: 'date',
+      label: 'Date',
       hidden: false,
       render: (item: any) => (
-        item.status === '0' ? (
-          <Button size="sm" onClick={(e) => {
-            e.preventDefault()
-            // handleNotify(item.id)
-          }}>Notify</Button>
-        ) : 'Notified'
+        new Date(item.date).toLocaleDateString('en-GB')
       )
     },
   ]
 
-  const actions = [
-    {
-      permission: 'can:view:audit',
-      label: 'Audit',
-      onClick: (item: any) => {
-        setOpenAudit(true);
-        setAuditData(item)
-      },
-    },
-    {
-      permission: 'can:update:histories',
-      label: 'Update',
-      onClick: (item: any) => {
-        // setData(item)
-        setOpenNews(true)
-        setFormType('update')
-      },
-    },
-    {
-      permission: 'can:delete:histories',
-      label: 'Delete',
-      onClick: (item: any) => {
-        // setData(item)
-        setOpenDeleteDialog(true)
-      },
-    },
-  ]
+  const actions: never[] = []
 
   const handleSearch = (query: string) => {
-    // router.get('/histories', { q: query }, { preserveState: true })
-  }
+    try {
+      if (!query) {
+        // If query is empty, reset to full data
+        setHistories({ ...histories, data: savedHistories });
+        return;
+      }
+
+      // Always filter from initialData, not the current filtered state
+      const filteredData = savedHistories.filter((item: any) =>
+        item.batch_no?.toLowerCase().includes(query.toLowerCase())
+      );
+
+      setHistories({ ...histories, data: filteredData });
+    } catch (error) {
+      console.error("Search Error:", error);
+    }
+  };
 
   const handlePageChange = (url: string) => {
     // router.get(url, {}, { preserveState: true })
   }
 
   const handleAdd = (e: React.MouseEvent) => {
-    // reset()
-    setOpenNews(true)
+    setForm([])
+    setOpenForm(true)
     setFormType('create')
   }
 
   const handleConfirmDelete = () => {
-    // post(`/histories/destroy`, {
-    //     onSuccess: () => {
-    //         setOpenDeleteDialog(false)
-    //         toast({
-    //             title: "News Deleted",
-    //             description: new Date().toLocaleDateString("en-GB"),
-    //         })
-    //     },
-    // })
+    // try {
+    //   window.sqlite.delete_history(form.id).then((d: any) => {
+    //     setOpenDeleteDialog(false)
+    //   })
+    // } catch (error) {
+    //   console.log(error)
+    // }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!deleteDialog || !openForm) {
+      try {
+        window.sqlite.get_labels().then((labels: any) => {
+          window.sqlite.get_batchs().then((batchs: any) => {
+            window.sqlite.get_products().then((products: any) => {
+              console.log(products, labels, batchs)
+              let data = batchs.map((batch: any) => ({
+                ...batch,
+                labels: labels.filter((label: any) => label.batch_id === batch.id),
+                product: products.find((product: any) => product.id === parseInt(batch.product_id))
+              }))
+              setHistories({
+                ...histories,
+                data: data
+              })
+              setSavedHistories(data)
+            })
+          })
+        })
+      } catch (error) {
+        console.log(error)
+      }
+    }
+  }, [openForm, deleteDialog])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const url = formType === 'create' ? '/histories/create' : '/histories/update'
 
-    // post(url, {
-    //     onSuccess: (data: any) => {
-    //         setOpenNews(false)
-    //         toast({
-    //             title: `News ${formType === 'create' ? 'Created' : 'Updated'}`,
-    //             description: new Date().toLocaleDateString("en-GB"),
-    //         })
-    //     },
-    //     onError: (err: any) => {
-    //         console.log(err)
+    // try {
+    //   if (formType === 'create') {
+    //     const submitData: any = await window.sqlite.create_historie(form);
+    //     console.log(submitData)
+    //     if (submitData) {
+    //       setOpenForm(false);
     //     }
-    // })
-  }
-
-  const handleSort = (column: string) => {
-    const newDirection = column === sortColumn && sortDirection === 'asc' ? 'desc' : 'asc'
-    setSortDirection(newDirection)
-    setSortColumn(column)
-    // router.get(
-    //     '/histories',
-    //     {
-    //         sort: column,
-    //         order: newDirection
-    //     },
-    //     {
-    //         replace: true,
-    //         preserveState: true,
+    //   } else {
+    //     const submitData: any = await window.sqlite.update_historie(form);
+    //     if (submitData) {
+    //       setOpenForm(false);
     //     }
-    // )
+    //   }
+    // } catch (error) {
+    //   console.log(error)
+    // }
   }
 
   return (
-    <div className="flex h-full flex-col p-4">
-      <div className="flex flex-1 flex-col gap-2">
-        <span className="text-2xl font-semibold leading-none tracking-tight pt-8">History</span>
-
-        <TableWithPagination
-          title="History"
-          description="Manage histories and view their data."
-          columns={columns}
-          data={histories?.data || []}
-          pagination={{
-            currentPage: histories?.current_page || 1,
-            perPage: histories?.per_page || 10,
-            total: histories?.total || 0,
-            from: histories?.from || 0,
-            to: histories?.to || 0,
-            nextUrl: histories?.next_page_url || null,
-            prevUrl: histories?.prev_page_url || null,
-          }}
-          actions={actions || []}
-          onSearch={handleSearch}
-          onPageChange={handlePageChange}
-          // onAdd={handleAdd}
-          addPermission="can:create:histories"
-        />
+    <div className="flex h-full flex-col p-4 overflow-y-auto scrollbar w-full">
+      <div className="flex flex-1 flex-col gap-2 pb-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Histories</h2>
+        </div>
+        <div className="flex flex-col gap-4">
+          <TableWithPagination
+            title="Histories"
+            description="Manage histories and view their data."
+            columns={columns}
+            data={histories?.data || []}
+            pagination={{
+              currentPage: histories?.current_page || 1,
+              perPage: histories?.per_page || 10,
+              total: histories?.total || 0,
+              from: histories?.from || 0,
+              to: histories?.to || 0,
+              nextUrl: histories?.next_page_url || null,
+              prevUrl: histories?.prev_page_url || null,
+            }}
+            actions={actions || []}
+            onSearch={handleSearch}
+            onPageChange={handlePageChange}
+            onAdd={handleAdd}
+            canAdd={false}
+            hideActions={true}
+          />
+        </div>
       </div>
       <Footer />
+
+      {
+        deleteDialog && (
+          <ConfirmDialog
+            open={deleteDialog}
+            setConfirm={handleConfirmDelete}
+            title="Confirm to delete?"
+            setOpen={setOpenDeleteDialog}
+          />
+        )
+      }
+
+      {
+        openForm && (
+          <FormDialog
+            setOpenForm={setOpenForm}
+            openDialog={openForm}
+            formType='view'
+            setConfirmForm={handleSubmit}
+            title={`Serial No Lists`}
+            forms={<Form data={form} />}
+            processing={false}
+            size='lg:max-w-3xl'
+          />
+        )
+      }
     </div>
+  )
+}
+
+function Form(props: any) {
+  const [data, setData] = useState(props.data);
+  const columns = [
+    {
+      key: 'serial_no',
+      label: 'Serial No.',
+      hidden: false,
+      render: (item: any) => (
+        item.serial
+      )
+    },
+    {
+      key: 'qr_code',
+      label: 'QR Code',
+      hidden: false,
+      render: (item: any) => (
+        item.qr_code
+      )
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      hidden: false,
+      render: (item: any) => (
+        item.status
+      )
+    },
+  ];
+
+  const actions: any[] = []
+
+  const handleSearch = (query: string) => {
+    try {
+      setData(props.data.filter((item: any) => item.serial.toLowerCase().includes(query.toLowerCase())))
+      console.log(data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  const handlePageChange = (url: string) => { }
+  const handleAdd = (e: React.MouseEvent) => { }
+
+  return (
+    <TableWithPagination
+      title="Serial No Lists"
+      description="view serial no lists"
+      columns={columns}
+      data={data || []}
+      pagination={{
+        currentPage: props?.current_page || 1,
+        perPage: props?.per_page || 10,
+        total: props?.total || 0,
+        from: props?.from || 0,
+        to: props?.to || 0,
+        nextUrl: props?.next_page_url || null,
+        prevUrl: props?.prev_page_url || null,
+      }}
+      actions={actions || []}
+      onSearch={handleSearch}
+      onPageChange={handlePageChange}
+      onAdd={handleAdd}
+      canAdd={false}
+      hideActions={true}
+    />
   )
 }

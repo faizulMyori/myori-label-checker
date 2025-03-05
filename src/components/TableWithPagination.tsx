@@ -46,6 +46,7 @@ interface ReusableTableProps {
     addPermission?: string
     onClickRow?: (item: any) => void
     canAdd?: boolean
+    hideActions?: boolean
 }
 
 export default function TableWithPagination({
@@ -60,7 +61,8 @@ export default function TableWithPagination({
     onAdd,
     addPermission,
     onClickRow,
-    canAdd
+    canAdd,
+    hideActions = false
 }: ReusableTableProps) {
     const [searchValue, setSearchValue] = useState('')
     // const permissions = usePage().props.auth.permissions
@@ -228,32 +230,35 @@ export default function TableWithPagination({
                                                         {column.render ? column.render(item) : item[column.key]}
                                                     </TableCell>
                                                 ))}
-                                                <TableCell>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                                <span className="sr-only">Toggle menu</span>
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                            <DropdownMenuSeparator />
-                                                            {canAdd && actions.map((action, index) => (
-                                                                <div key={index}>
-                                                                    <DropdownMenuItem
-                                                                        key={typeof action.label === 'string' ? action.label : 'dynamic-label'}
-                                                                        onSelect={() => action.onClick(item)}
-                                                                        disabled={typeof action.disabled === 'function' ? action.disabled(item) : action.disabled}
-                                                                    >
-                                                                        {typeof action.label === 'function' ? action.label(item) : action.label}
-                                                                    </DropdownMenuItem>
-                                                                    {action.separator && <DropdownMenuSeparator />}
-                                                                </div>
-                                                            ))}
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </TableCell>
+                                                {
+                                                    !hideActions &&
+                                                    <TableCell>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                                    <MoreHorizontal className="h-4 w-4" />
+                                                                    <span className="sr-only">Toggle menu</span>
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                                <DropdownMenuSeparator />
+                                                                {canAdd && actions.map((action, index) => (
+                                                                    <div key={index}>
+                                                                        <DropdownMenuItem
+                                                                            key={typeof action.label === 'string' ? action.label : 'dynamic-label'}
+                                                                            onSelect={() => action.onClick(item)}
+                                                                            disabled={typeof action.disabled === 'function' ? action.disabled(item) : action.disabled}
+                                                                        >
+                                                                            {typeof action.label === 'function' ? action.label(item) : action.label}
+                                                                        </DropdownMenuItem>
+                                                                        {action.separator && <DropdownMenuSeparator />}
+                                                                    </div>
+                                                                ))}
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </TableCell>
+                                                }
                                             </TableRow>
                                         ))
                                     ) : (
