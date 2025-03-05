@@ -45,6 +45,13 @@ interface sqlite {
   update_batch: (data: any) => Promise<void>;
   delete_batch: (id: any) => Promise<void>;
 
+  create_label: (data: any) => Promise<void>;
+  get_labels: () => Promise<void>;
+  search_labels: (query: string) => Promise<void>;
+  update_label: (data: any) => Promise<void>;
+  delete_label: (id: any) => Promise<void>;
+
+
   create_connection: (ip: any, port: any, com: any) => Promise<void>;
   get_connections: () => Promise<void>;
 }

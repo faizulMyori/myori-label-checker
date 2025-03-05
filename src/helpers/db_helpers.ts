@@ -71,10 +71,9 @@ async function initializeLabelsTable() {
         CREATE TABLE IF NOT EXISTS labels (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           serial TEXT NOT NULL,
-          qr TEXT NOT NULL,
+          qr_code TEXT NOT NULL,
           status TEXT NOT NULL,
           batch_id INTEGER NOT NULL,
-          user_id INTEGER NOT NULL,
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;

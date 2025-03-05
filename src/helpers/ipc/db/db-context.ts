@@ -21,7 +21,12 @@ import {
   DB_DELETE_BATCH,
   DB_GET_BATCHS,
   DB_SEARCH_BATCHS,
-  DB_UPDATE_BATCH
+  DB_UPDATE_BATCH,
+  DB_CREATE_LABEL,
+  DB_DELETE_LABEL,
+  DB_GET_LABELS,
+  DB_SEARCH_LABELS,
+  DB_UPDATE_LABEL
 } from "./db-channels";
 
 export function exposeDBContext() {
@@ -52,6 +57,12 @@ export function exposeDBContext() {
     search_batchs: (query: string) => ipcRenderer.invoke(DB_SEARCH_BATCHS, query),
     update_batch: (data: any) => ipcRenderer.invoke(DB_UPDATE_BATCH, data),
     delete_batch: (id: number) => ipcRenderer.invoke(DB_DELETE_BATCH, id),
+
+    create_label: (data: any) => ipcRenderer.invoke(DB_CREATE_LABEL, data),
+    get_labels: () => ipcRenderer.invoke(DB_GET_LABELS),
+    search_labels: (query: string) => ipcRenderer.invoke(DB_SEARCH_LABELS, query),
+    update_label: (data: any) => ipcRenderer.invoke(DB_UPDATE_LABEL, data),
+    delete_label: (id: number) => ipcRenderer.invoke(DB_DELETE_LABEL, id),
 
     create_connection: (ip: any, port: any, com: any) => ipcRenderer.invoke(DB_CREATE_CONNECTION, { ip, port, com }),
     get_connections: () => ipcRenderer.invoke(DB_GET_CONNECTIONS),

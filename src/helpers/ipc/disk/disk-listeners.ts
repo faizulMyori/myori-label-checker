@@ -17,12 +17,21 @@ export function addDiskEventListeners() {
     });
   });
 
-  ipcMain.handle(DISK_CHECK_SPACE, () => {
-    checkDiskSpace('C:/').then((result: any) => {
-      if (result.free / result.size < 0.8) {
-        ipcMain.emit(WIN_DIALOG_INFO, { title: "Disk Full", message: "Disk C: is 80% full. Please free up space." });
+  ipcMain.handle(DISK_CHECK_SPACE, async () => {
+    try {
+      const result = await checkDiskSpace("C:/");
+
+      if ((result.size - result.free) / result.size >= 0.8) {
+        ipcMain.emit(WIN_DIALOG_INFO, {
+          title: "Disk Full",
+          message: "Disk C: is 80% full. Please free up space.",
+        });
       }
-    }).catch((error: any) => {
-    })
+
+      return result; // Ensure the function returns the disk space info
+    } catch (error) {
+      console.error("Error checking disk space:", error);
+      throw error; // Propagate the error to be handled in the renderer process
+    }
   });
 }

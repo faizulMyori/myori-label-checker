@@ -42,6 +42,7 @@ export default function ProductionPage() {
   const [duplicatedData, setDuplicatedData] = useState([] as any[])
   const [missingData, setMissingData] = useState([] as any[])
   const [open, setOpen] = useState(false)
+  const [batchID, setBatchID] = useState("")
   const [batchNo, setBatchNo] = useState("")
   const [batches, setBatches] = useState([])
   const [batchError, setBatchError] = useState(false)
@@ -95,6 +96,7 @@ export default function ProductionPage() {
 
   useEffect(() => {
     window.sqlite.get_batchs().then((data: any) => {
+      console.log(data)
       setBatches(data)
     })
   }, [])
@@ -175,7 +177,7 @@ export default function ProductionPage() {
       batch_no: batchNo,
       product_id: selectedProduct,
     }).then((data: any) => {
-      console.log(data)
+      setBatchID(data?.id)
     }).catch((error: any) => {
       console.log(error)
     })
@@ -191,19 +193,17 @@ export default function ProductionPage() {
   const stopProduction = () => {
     setProductionStatus("STOPPED")
     if (labelRolls.length > 0) {
-      window.sqlite.update_batch({
-        batch_no: batchNo,
-        product_id: selectedProduct,
-        used_labels: JSON.stringify(
-          capturedData
-            .map((item: any) => [
-              item.serial,
-            ])
-        )
-      }).then((data: any) => {
-        console.log(data)
-      }).catch((error: any) => {
-        console.log(error)
+      capturedData.forEach((item: any) => {
+        window.sqlite.create_label({
+          batch_id: batchID,
+          serial: item.serial,
+          qr_code: item.url,
+          status: item.status,
+        }).then((data: any) => {
+          console.log(data)
+        }).catch((error: any) => {
+          console.log(error)
+        })
       })
     }
   }
@@ -488,7 +488,7 @@ export default function ProductionPage() {
                               disabled={productionStatus === "RUNNING"}
                               onChange={(e) => {
                                 setBatchNo(e.target.value)
-                                if (batches.find((batch: any) => batch.batch_no !== e.target.value)) {
+                                if (batches.length === 0 || batches.find((batch: any) => batch.batch_no !== e.target.value)) {
                                   setBatchError(false)
                                 } else {
                                   setBatchError(true)

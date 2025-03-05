@@ -23,6 +23,11 @@ import {
   DB_GET_BATCHS,
   DB_SEARCH_BATCHS,
   DB_UPDATE_BATCH,
+  DB_CREATE_LABEL,
+  DB_DELETE_LABEL,
+  DB_GET_LABELS,
+  DB_SEARCH_LABELS,
+  DB_UPDATE_LABEL,
 } from "./db-channels";
 
 import {
@@ -179,7 +184,8 @@ export function addDBEventListeners() {
   // batches
   ipcMain.handle(DB_CREATE_BATCH, async (event, data) => {
     try {
-      return await executeQuery("INSERT INTO batches (batch_no, product_id, date) VALUES (?, ?, ?)", [data.batch_no, data.product_id, data.date]);
+      let create = await executeQuery("INSERT INTO batches (batch_no, product_id, date) VALUES (?, ?, ?)", [data.batch_no, data.product_id, data.date]);
+      if (create) return await fetchOne("SELECT * FROM batches WHERE batch_no = ?", [data.batch_no]);
     } catch (error) {
       return false;
     }
@@ -212,6 +218,48 @@ export function addDBEventListeners() {
   ipcMain.handle(DB_DELETE_BATCH, async (event, data) => {
     try {
       return await executeQuery("DELETE FROM batches WHERE id = ?", [data]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  // labels
+  ipcMain.handle(DB_CREATE_LABEL, async (event, data) => {
+    try {
+      return await executeQuery("INSERT INTO labels (serial, qr_code, status, batch_id) VALUES (?, ?, ?, ?)", [data.serial, data.qr_code, data.status, data.batch_id]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_GET_LABELS, async (event, data) => {
+    try {
+      return await fetchAll("SELECT * FROM labels");
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_SEARCH_LABELS, async (event, data) => {
+    try {
+      return await fetchAll("SELECT * FROM labels WHERE serial LIKE ? ", [`%${data}%`]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_UPDATE_LABEL, async (event, data) => {
+    try {
+      // return await executeQuery("UPDATE labels SET username = ? WHERE id = ?", [data.username, data.id]);
+      return true
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_DELETE_LABEL, async (event, data) => {
+    try {
+      return await executeQuery("DELETE FROM labels WHERE id = ?", [data]);
     } catch (error) {
       return false;
     }
