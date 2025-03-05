@@ -18,6 +18,11 @@ import {
   DB_GET_USERS,
   DB_SEARCH_USERS,
   DB_UPDATE_USER,
+  DB_CREATE_BATCH,
+  DB_DELETE_BATCH,
+  DB_GET_BATCHS,
+  DB_SEARCH_BATCHS,
+  DB_UPDATE_BATCH,
 } from "./db-channels";
 
 import {
@@ -171,6 +176,46 @@ export function addDBEventListeners() {
     }
   });
 
+  // batches
+  ipcMain.handle(DB_CREATE_BATCH, async (event, data) => {
+    try {
+      return await executeQuery("INSERT INTO batches (batch_no, product_id, date) VALUES (?, ?, ?)", [data.batch_no, data.product_id, data.date]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_GET_BATCHS, async (event, data) => {
+    try {
+      return await fetchAll("SELECT * FROM batches");
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_SEARCH_BATCHS, async (event, data) => {
+    try {
+      return await fetchAll("SELECT * FROM batches WHERE batch_no LIKE ? ", [`%${data}%`]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_UPDATE_BATCH, async (event, data) => {
+    try {
+      return await executeQuery("UPDATE users SET used_labels = ? WHERE product_id = ? AND batch_no = ?", [data.used_labels, data.product_id, data.batch_no]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_DELETE_BATCH, async (event, data) => {
+    try {
+      return await executeQuery("DELETE FROM batches WHERE id = ?", [data]);
+    } catch (error) {
+      return false;
+    }
+  });
 
   ipcMain.handle(DB_CREATE_CONNECTION, async (event, data) => {
     // console.log(data)

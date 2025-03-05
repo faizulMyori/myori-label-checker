@@ -43,6 +43,8 @@ export default function ProductionPage() {
   const [missingData, setMissingData] = useState([] as any[])
   const [open, setOpen] = useState(false)
   const [batchNo, setBatchNo] = useState("")
+  const [batches, setBatches] = useState([])
+  const [batchError, setBatchError] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState("")
   const [labelRolls, setLabelRolls] = useState<LabelRoll[]>([
     { id: "1", rollNumber: "1", startNumber: "", endNumber: "", verified: false },
@@ -91,6 +93,11 @@ export default function ProductionPage() {
     }, 0);
   };
 
+  useEffect(() => {
+    window.sqlite.get_batchs().then((data: any) => {
+      setBatches(data)
+    })
+  }, [])
 
   // Add new label roll
   const addLabelRoll = () => {
@@ -163,6 +170,15 @@ export default function ProductionPage() {
       labelRolls,
     }
     setSavedProduction(productData)
+    window.sqlite.create_batch({
+      date: today,
+      batch_no: batchNo,
+      product_id: selectedProduct,
+    }).then((data: any) => {
+      console.log(data)
+    }).catch((error: any) => {
+      console.log(error)
+    })
     setOpen(false)
   }
 
@@ -174,6 +190,22 @@ export default function ProductionPage() {
   // Stop production
   const stopProduction = () => {
     setProductionStatus("STOPPED")
+    if (labelRolls.length > 0) {
+      window.sqlite.update_batch({
+        batch_no: batchNo,
+        product_id: selectedProduct,
+        used_labels: JSON.stringify(
+          capturedData
+            .map((item: any) => [
+              item.serial,
+            ])
+        )
+      }).then((data: any) => {
+        console.log(data)
+      }).catch((error: any) => {
+        console.log(error)
+      })
+    }
   }
 
   const addManualRejectEntry = () => {
@@ -385,7 +417,6 @@ export default function ProductionPage() {
     };
   }, [productionStatus]);
 
-
   // Generate list of all possible serials
   const totalSerials = labelRolls.flatMap(({ startNumber, endNumber }) => {
     const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/);
@@ -455,10 +486,22 @@ export default function ProductionPage() {
                               id="batchNo"
                               value={batchNo}
                               disabled={productionStatus === "RUNNING"}
-                              onChange={(e) => setBatchNo(e.target.value)}
-                              className="col-span-3"
+                              onChange={(e) => {
+                                setBatchNo(e.target.value)
+                                if (batches.find((batch: any) => batch.batch_no !== e.target.value)) {
+                                  setBatchError(false)
+                                } else {
+                                  setBatchError(true)
+                                }
+                              }}
+                              className={`col-span-3 ${batchError ? "border-red-500" : ""}`}
                               placeholder="Enter batch number"
                             />
+                            {
+                              batchError && (
+                                <div className="text-right text-xs col-span-4 text-red-500">{"Batch number already exists"}</div>
+                              )
+                            }
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="product" className="text-right">
@@ -546,7 +589,7 @@ export default function ProductionPage() {
                           </div>
                         </div>
                         <div className="flex justify-end">
-                          <Button type="button" onClick={saveProduction} disabled={productionStatus === "RUNNING" || labelRolls.some((roll) => !roll.verified)}>
+                          <Button type="button" onClick={saveProduction} disabled={productionStatus === "RUNNING" || labelRolls.some((roll) => !roll.verified) || batchError}>
                             Save Production Batch
                           </Button>
                         </div>

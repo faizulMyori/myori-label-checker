@@ -16,7 +16,12 @@ import {
   DB_DELETE_USER,
   DB_GET_USERS,
   DB_SEARCH_USERS,
-  DB_UPDATE_USER
+  DB_UPDATE_USER,
+  DB_CREATE_BATCH,
+  DB_DELETE_BATCH,
+  DB_GET_BATCHS,
+  DB_SEARCH_BATCHS,
+  DB_UPDATE_BATCH
 } from "./db-channels";
 
 export function exposeDBContext() {
@@ -41,6 +46,12 @@ export function exposeDBContext() {
     search_users: (query: string) => ipcRenderer.invoke(DB_SEARCH_USERS, query),
     update_user: (data: any) => ipcRenderer.invoke(DB_UPDATE_USER, data),
     delete_user: (id: number) => ipcRenderer.invoke(DB_DELETE_USER, id),
+
+    create_batch: (data: any) => ipcRenderer.invoke(DB_CREATE_BATCH, data),
+    get_batchs: () => ipcRenderer.invoke(DB_GET_BATCHS),
+    search_batchs: (query: string) => ipcRenderer.invoke(DB_SEARCH_BATCHS, query),
+    update_batch: (data: any) => ipcRenderer.invoke(DB_UPDATE_BATCH, data),
+    delete_batch: (id: number) => ipcRenderer.invoke(DB_DELETE_BATCH, id),
 
     create_connection: (ip: any, port: any, com: any) => ipcRenderer.invoke(DB_CREATE_CONNECTION, { ip, port, com }),
     get_connections: () => ipcRenderer.invoke(DB_GET_CONNECTIONS),

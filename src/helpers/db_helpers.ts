@@ -42,6 +42,7 @@ async function initializeBatchesTable() {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           batch_no TEXT NOT NULL,
           product_id TEXT NOT NULL,
+          date TEXT NOT NULL,
           timestamp INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;
