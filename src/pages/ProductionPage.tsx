@@ -454,6 +454,7 @@ export default function ProductionPage() {
                             <Input
                               id="batchNo"
                               value={batchNo}
+                              disabled={productionStatus === "RUNNING"}
                               onChange={(e) => setBatchNo(e.target.value)}
                               className="col-span-3"
                               placeholder="Enter batch number"
@@ -464,7 +465,7 @@ export default function ProductionPage() {
                               Product
                             </Label>
                             <div className="col-span-3">
-                              <Select value={selectedProduct} onValueChange={(value) => {
+                              <Select disabled={productionStatus === "RUNNING"} value={selectedProduct} onValueChange={(value) => {
                                 setSelectedProduct(value)
                                 setProductData(products.find((product: any) => product.id.toString() === value) || {})
                               }}>
@@ -491,7 +492,7 @@ export default function ProductionPage() {
                           <div className="mt-4">
                             <div className="flex justify-between items-center mb-2">
                               <Label>Label Rolls</Label>
-                              <Button type="button" variant="outline" size="sm" onClick={addLabelRoll}>
+                              <Button type="button" variant="outline" size="sm" disabled={productionStatus === "RUNNING"} onClick={addLabelRoll}>
                                 <Plus className="h-4 w-4 mr-1" /> Add Roll
                               </Button>
                             </div>
