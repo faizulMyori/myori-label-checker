@@ -121,7 +121,7 @@ export default function UserManagementPage() {
     } catch (error) {
       console.log(error)
     }
-  }, [])
+  }, [openForm, deleteDialog])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
