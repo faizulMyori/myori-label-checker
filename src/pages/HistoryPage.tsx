@@ -149,12 +149,12 @@ export default function Index() {
     <div className="flex h-full flex-col p-4 overflow-y-auto scrollbar w-full">
       <div className="flex flex-1 flex-col gap-2 pb-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Histories</h2>
+          <h2 className="text-2xl font-bold">Search</h2>
         </div>
         <div className="flex flex-col gap-4">
           <TableWithPagination
-            title="Histories"
-            description="Manage histories and view their data."
+            title="Search"
+            description="Seach histories and view their data."
             columns={columns}
             data={histories?.data || []}
             pagination={{

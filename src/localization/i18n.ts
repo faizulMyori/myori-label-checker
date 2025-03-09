@@ -10,7 +10,7 @@ i18n.use(initReactI18next).init({
         titleHomePage: "Dashboard",
         titleInventoryPage: "Inventory",
         titleProductionPage: "Production",
-        titleHistoryPage: "History",
+        titleHistoryPage: "Search",
         titleSettingPage: "Settings",
         titleLicensePage: "License",
       },

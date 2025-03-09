@@ -46,20 +46,20 @@ export default function NavigationMenu() {
           <>
             <NavigationMenuItem>
               <NavigationMenuLink onClick={() => {
-                setActiveTab("/inventory");
-                setRoute("/inventory");
-                navigate({ to: "/inventory" })
-              }} className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/inventory" })}>
-                {t("titleInventoryPage")}
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink onClick={() => {
                 setActiveTab("/license");
                 setRoute("/license");
                 navigate({ to: "/license" })
               }} className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/license" })}>
                 {t("titleLicensePage")}
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink onClick={() => {
+                setActiveTab("/inventory");
+                setRoute("/inventory");
+                navigate({ to: "/inventory" })
+              }} className={cn(navigationMenuTriggerStyle(), "group", { "bg-accent text-accent-foreground": activeTab === "/inventory" })}>
+                {t("titleInventoryPage")}
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
