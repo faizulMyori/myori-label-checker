@@ -7,22 +7,40 @@ import { ThemeMode } from '@/types/theme-mode';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import StorageBar from '@/components/StorageBar';
+import { Input } from '@/components/ui/input';
+import { Slider } from "@/components/ui/slider"
+import { SliderWithInput } from '@/components/ui/slider-with-input';
 
 export default function MiscPage({ className = '', ...props }: HTMLAttributes<HTMLDivElement>) {
   const [themeNow, setThemeNow] = React.useState<ThemeMode | null>(null);
-  const [storage, setStorage] = React.useState({
+  const [storageC, setStorageC] = React.useState({
     diskPath: '',
     free: 0,
     size: 0
   });
+  const [storageD, setStorageD] = React.useState({
+    diskPath: '',
+    free: 0,
+    size: 0
+  });
+  const [storageThreshold, setStorageThreshold] = React.useState(50);
+
   useEffect(() => {
     (async () => {
       setThemeNow(await getTheme());
-      window.disk.disk_get().then((result: any) => setStorage({
+      window.disk.disk_get('D:/').then((result: any) => setStorageD({
         diskPath: result.diskPath,
         free: result.free,
         size: result.size
       }));
+      window.disk.disk_get('C:/').then((result: any) => setStorageC({
+        diskPath: result.diskPath,
+        free: result.free,
+        size: result.size
+      }));
+      window.sqlite.get_storage_treshold().then((result: any) => {
+       setStorageThreshold(parseInt(result.treshold))
+      });
     })();
   }, []);
 
@@ -65,7 +83,17 @@ export default function MiscPage({ className = '', ...props }: HTMLAttributes<HT
           </div>
         </div>
         <Label htmlFor="storage">Storage</Label>
-        <StorageBar storage={storage} />
+        <StorageBar storage={storageC} />
+        <StorageBar storage={storageD} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="treshold">Storage Treshold (%)</Label>
+            <Input id="treshold" placeholder="80" value={storageThreshold} type='number' min={50} max={100} onChange={(e:any) => {
+              setStorageThreshold(e.target.value)
+              window.sqlite.create_storage_treshold(e.target.value)
+            }} />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

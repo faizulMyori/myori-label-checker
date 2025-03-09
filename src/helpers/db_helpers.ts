@@ -12,10 +12,27 @@ export async function initializeDatabase() {
     initializeLabelsTable();
     initializeConnectionsDatabase();
     initializeLicensesDatabase();
+    initializeStorageTable();
     console.log("Database initialized successfully");
   } catch (error) {
     console.error("Failed to initialize database", error);
   }
+}
+
+async function initializeStorageTable() {
+  const sql = `
+        CREATE TABLE IF NOT EXISTS storage_treshold (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          treshold TEXT NOT NULL,
+          created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
+  await executeQuery(sql);
+
+  const insertStorageSql = `
+      INSERT INTO storage_treshold (treshold) VALUES (?);
+    `;
+  await executeQuery(insertStorageSql, ['80']);
 }
 
 async function initializeUsersTable() {

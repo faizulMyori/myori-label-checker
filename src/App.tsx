@@ -50,7 +50,7 @@ export default function App() {
       }
     };
     handleConnection();
-    window.disk.disk_check_space().then(
+    window.disk.disk_check_space('D:/').then(
       (resp: any) => {
         if (resp) {
           console.log(resp)

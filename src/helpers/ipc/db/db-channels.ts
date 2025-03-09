@@ -27,3 +27,5 @@ export const DB_SEARCH_LABELS = "db:searchLabels";
 export const DB_DELETE_LABEL = "db:deleteLabel";
 export const DB_UPDATE_LABEL = "db:updateLabel";
 export const DB_FIND_LABEL = "db:findLabel";
+export const DB_CREATE_STORAGE_TRESHOLD = "db:createStorageTreshold";
+export const DB_GET_STORAGE_TRESHOLD = "db:getStorageTreshold";

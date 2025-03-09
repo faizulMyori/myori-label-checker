@@ -29,6 +29,8 @@ import {
   DB_SEARCH_LABELS,
   DB_UPDATE_LABEL,
   DB_FIND_LABEL,
+  DB_CREATE_STORAGE_TRESHOLD,
+  DB_GET_STORAGE_TRESHOLD,
 } from "./db-channels";
 
 import {
@@ -300,6 +302,25 @@ export function addDBEventListeners() {
   ipcMain.handle(DB_GET_CONNECTIONS, async (event) => {
     try {
       let data: any = await fetchOne("SELECT * FROM connections ORDER BY id DESC LIMIT 1");
+      return data
+    } catch (error) {
+      return error;
+    }
+  });
+
+  ipcMain.handle(DB_CREATE_STORAGE_TRESHOLD, async (event, data) => {
+    try {
+      let deleteTreshold = await executeQuery("DELETE FROM storage_treshold");
+
+      if (deleteTreshold) return await executeQuery("INSERT INTO storage_treshold (treshold) VALUES (?)", [data]);
+    } catch (error) {
+      return false;
+    }
+  });
+
+  ipcMain.handle(DB_GET_STORAGE_TRESHOLD, async (event) => {
+    try {
+      let data: any = await fetchOne("SELECT * FROM storage_treshold ORDER BY id DESC LIMIT 1");
       return data
     } catch (error) {
       return error;

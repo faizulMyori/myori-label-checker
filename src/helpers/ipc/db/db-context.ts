@@ -27,7 +27,9 @@ import {
   DB_GET_LABELS,
   DB_SEARCH_LABELS,
   DB_UPDATE_LABEL,
-  DB_FIND_LABEL
+  DB_FIND_LABEL,
+  DB_CREATE_STORAGE_TRESHOLD,
+  DB_GET_STORAGE_TRESHOLD
 } from "./db-channels";
 
 export function exposeDBContext() {
@@ -65,6 +67,9 @@ export function exposeDBContext() {
     update_label: (data: any) => ipcRenderer.invoke(DB_UPDATE_LABEL, data),
     delete_label: (id: number) => ipcRenderer.invoke(DB_DELETE_LABEL, id),
     check_serial_numbers: (data: any) => ipcRenderer.invoke(DB_FIND_LABEL, data),
+
+    create_storage_treshold: (value: any) => ipcRenderer.invoke(DB_CREATE_STORAGE_TRESHOLD, value),
+    get_storage_treshold: () => ipcRenderer.invoke(DB_GET_STORAGE_TRESHOLD),
 
     create_connection: (ip: any, port: any, com: any) => ipcRenderer.invoke(DB_CREATE_CONNECTION, { ip, port, com }),
     get_connections: () => ipcRenderer.invoke(DB_GET_CONNECTIONS),

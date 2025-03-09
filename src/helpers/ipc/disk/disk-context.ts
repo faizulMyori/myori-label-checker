@@ -6,7 +6,7 @@ import {
 export function exposeDiskContext() {
   const { contextBridge, ipcRenderer } = window.require("electron");
   contextBridge.exposeInMainWorld("disk", {
-    disk_get: () => ipcRenderer.invoke(DISK_GET),
-    disk_check_space: () => ipcRenderer.invoke(DISK_CHECK_SPACE),
+    disk_get: (path:any) => ipcRenderer.invoke(DISK_GET, path),
+    disk_check_space: (path:any) => ipcRenderer.invoke(DISK_CHECK_SPACE, path),
   });
 }

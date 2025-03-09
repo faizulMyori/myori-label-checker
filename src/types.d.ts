@@ -58,6 +58,9 @@ interface sqlite {
   update_history: (data: any) => Promise<void>;
   delete_history: (id: any) => Promise<void>;
 
+  create_storage_treshold: (value: any) => Promise<void>;
+  get_storage_treshold: () => Promise<void>;
+  
   create_connection: (ip: any, port: any, com: any) => Promise<void>;
   get_connections: () => Promise<void>;
 }
@@ -83,8 +86,8 @@ interface serial {
 }
 
 interface disk {
-  disk_get: () => Promise<void>;
-  disk_check_space: () => Promise<void>;
+  disk_get: (path:any) => Promise<void>;
+  disk_check_space: (path:any) => Promise<void>;
 }
 
 declare interface Window {
