@@ -519,7 +519,7 @@ export default function ProductionPage() {
                     <Dialog open={open} onOpenChange={handleOpenChange}>
                       <DialogTrigger asChild>
                         <Button variant="secondary" size="lg">
-                          Enter Production
+                          New Production
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[600px]">
@@ -748,7 +748,7 @@ export default function ProductionPage() {
                   {/* Auto-Reject Data */}
                   <Card className="col-span-3">
                     <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle className="text-lg">UNUSED SERIALS</CardTitle>
+                      <CardTitle className="text-lg">UNUSED SERIAL NO</CardTitle>
                       <div className="flex items-center gap-2">
                         <div className="text-2xl font-bold">{remainingSerials.length}</div>
                         <Button variant="ghost" size="sm" onClick={() => handleDownload("unused-serials")}>
@@ -768,7 +768,7 @@ export default function ProductionPage() {
                   {/* Bottom Row */}
                   <Card className="col-span-4">
                     <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle className="text-lg">MISSING DATA</CardTitle>
+                      <CardTitle className="text-lg">MISSING SERIAL NO & NG</CardTitle>
                       <div className="flex items-center gap-2">
                         <div className="text-2xl font-bold">{missingData.length}</div>
                         <Button variant="ghost" size="sm" onClick={() => handleDownload("missing")}>
@@ -787,7 +787,7 @@ export default function ProductionPage() {
 
                   <Card className="col-span-4">
                     <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle className="text-lg">DUPLICATE DATA</CardTitle>
+                      <CardTitle className="text-lg">DUPLICATED SERIAL NO</CardTitle>
                       <div className="flex items-center gap-2">
                         <div className="text-2xl font-bold">{duplicatedData.length}</div>
                         <Button variant="ghost" size="sm" onClick={() => handleDownload("duplicate")}>
@@ -806,7 +806,7 @@ export default function ProductionPage() {
 
                   <Card className="col-span-4">
                     <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle className="text-lg">MANUAL-REJECT DATA</CardTitle>
+                      <CardTitle className="text-lg">MANUAL-REJECT SERIAL NO</CardTitle>
                       <div className="flex items-center gap-2">
                         <div className="text-2xl font-bold">{manualRejectEntries.length}</div>
                         <Button variant="ghost" size="sm" onClick={() => handleDownload("manual-reject")}>
