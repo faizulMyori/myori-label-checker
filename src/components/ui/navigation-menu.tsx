@@ -77,7 +77,27 @@ const NavigationMenuContent = React.forwardRef<
 ))
 NavigationMenuContent.displayName = NavigationMenuPrimitive.Content.displayName
 
-const NavigationMenuLink = NavigationMenuPrimitive.Link
+const NavigationMenuLink = React.forwardRef<
+  React.ElementRef<typeof NavigationMenuPrimitive.Link>,
+  React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Link> & { disabled?: boolean }
+>(({ className, disabled, ...props }, ref) => {
+  const linkClass = cn(
+    "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-hidden",
+    {
+      "pointer-events-none opacity-50": disabled, // Apply these styles when disabled
+    },
+    className
+  );
+
+  return (
+    <NavigationMenuPrimitive.Link
+      ref={ref}
+      className={linkClass}
+      {...props}
+      data-disabled={disabled ? true : undefined} // Add a custom attribute for identifying disabled state (for testing or accessibility)
+    />
+  );
+});
 
 const NavigationMenuViewport = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Viewport>,

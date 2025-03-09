@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, dialog } from "electron";
 import registerListeners from "./helpers/ipc/listeners-register";
 import path from "path";
 import {

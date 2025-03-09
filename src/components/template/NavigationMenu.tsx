@@ -15,7 +15,7 @@ import { UserContext } from "@/App";
 export default function NavigationMenu() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = React.useState<string>("/");
-  const { user, setUser, route, setRoute }: any = useContext(UserContext);
+  const { user, setUser, route, setRoute, prodStatus }: any = useContext(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function NavigationMenu() {
     <NavigationMenuBase className="px-2 font-mono text-muted-foreground">
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuLink onClick={() => {
+          <NavigationMenuLink disabled={prodStatus === "started"} onClick={() => {
             setActiveTab("/")
             setRoute("/")
             navigate({ to: "/" })
@@ -45,7 +45,7 @@ export default function NavigationMenu() {
           user &&
           <>
             <NavigationMenuItem>
-              <NavigationMenuLink onClick={() => {
+              <NavigationMenuLink disabled={prodStatus === "started"} onClick={() => {
                 setActiveTab("/license");
                 setRoute("/license");
                 navigate({ to: "/license" })
@@ -54,7 +54,7 @@ export default function NavigationMenu() {
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuLink onClick={() => {
+              <NavigationMenuLink disabled={prodStatus === "started"} onClick={() => {
                 setActiveTab("/inventory");
                 setRoute("/inventory");
                 navigate({ to: "/inventory" })
@@ -63,7 +63,7 @@ export default function NavigationMenu() {
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuLink onClick={() => {
+              <NavigationMenuLink disabled={prodStatus === "started"} onClick={() => {
                 setActiveTab("/production");
                 setRoute("/production");
                 navigate({ to: "/production" })
@@ -72,7 +72,7 @@ export default function NavigationMenu() {
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuLink onClick={() => {
+              <NavigationMenuLink disabled={prodStatus === "started"} onClick={() => {
                 setActiveTab("/history");
                 setRoute("/history");
                 navigate({ to: "/history" })
@@ -81,7 +81,7 @@ export default function NavigationMenu() {
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuLink onClick={() => {
+              <NavigationMenuLink disabled={prodStatus === "started"} onClick={() => {
                 setActiveTab("/setting");
                 setRoute("/setting");
                 navigate({ to: "/setting" })

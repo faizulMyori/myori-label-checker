@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useContext, useEffect, useState } from "react"
 import { Plus, Check, RefreshCcw, Download } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import React from "react"
 import Footer from "@/components/template/Footer"
+import { UserContext } from "@/App"
 
 type LabelRoll = {
   id: string
@@ -38,6 +39,8 @@ type ManualRejectEntry = {
 }
 
 export default function ProductionPage() {
+  const { prodStatus, setProdStatus }: any = useContext(UserContext);
+
   const [capturedData, setCapturedData] = useState([] as any[])
   const [duplicatedData, setDuplicatedData] = useState([] as any[])
   const [missingData, setMissingData] = useState([] as any[])
@@ -195,6 +198,7 @@ export default function ProductionPage() {
 
   // Start production
   const startProduction = () => {
+    setProdStatus("started")
     setProductionStatus("RUNNING")
     // reset all data except production data and revert label rolls
     setLabelRolls(labelRolls.map((roll) => ({ ...roll, verified: true })))
@@ -207,6 +211,8 @@ export default function ProductionPage() {
 
   // Stop production
   const stopProduction = () => {
+    setProdStatus("stopped")
+
     setProductionStatus("STOPPED")
     if (labelRolls.length > 0) {
       capturedData.forEach((item: any) => {
@@ -283,7 +289,7 @@ export default function ProductionPage() {
       "RATING",
       "SIZE"
     ];
-  
+
     // Function to map data items to the common structure
     const mapData = (dataSource: any[]) => {
       return dataSource.map((item: any) => [
@@ -296,67 +302,69 @@ export default function ProductionPage() {
         productData.size
       ]);
     };
-  
+
     let data: any = [];
     let title = 'Report';
     let sheets = [];
-  
+
     // For different sections, get the relevant data
     switch (section) {
       case "captured":
         data = capturedData
-          .filter(item => 
+          .filter(item =>
             !missingData.some(dup => dup.serial === item.serial) &&
             !manualRejectEntries.some(dup => dup.serialNumber === item.serial)
           );
         title = "SIRIM REPORT";
         sheets.push({ title, metadata, data: mapData(data) });
         break;
-  
+
       case "manual-reject":
         data = manualRejectEntries;
         title = "MANUAL REJECT REPORT";
         sheets.push({ title, metadata, data: mapData(data) });
         break;
-  
+
       case "missing":
         data = missingData;
         title = "MISSING REPORT";
         sheets.push({ title, metadata, data: mapData(data) });
         break;
-  
+
       case "duplicate":
         data = duplicatedData;
         title = "DUPLICATE REPORT";
         sheets.push({ title, metadata, data: mapData(data) });
         break;
-  
+
       case "unused-serials":
         metadata.splice(1);  // Only "SIRIM SERIAL NO."
         data = remainingSerials.map((item: any) => [item]);
         title = "UNUSED SERIALS REPORT";
         sheets.push({ title, metadata, data });
         break;
-  
+
       case "all":
         // Combine all sections' data into a single download
         sheets = [
-          { title: "SIRIM REPORT", metadata, data: mapData(capturedData.filter(item => 
-            !missingData.some(dup => dup.serial === item.serial) &&
-            !manualRejectEntries.some(dup => dup.serialNumber === item.serial)
-          )) },
+          {
+            title: "SIRIM REPORT", metadata, data: mapData(capturedData.filter(item =>
+              !missingData.some(dup => dup.serial === item.serial) &&
+              !manualRejectEntries.some(dup => dup.serialNumber === item.serial)
+            ))
+          },
           { title: "MANUAL REJECT REPORT", metadata, data: mapData(manualRejectEntries) },
           { title: "MISSING REPORT", metadata, data: mapData(missingData) },
           { title: "DUPLICATE REPORT", metadata, data: mapData(duplicatedData) },
           { title: "UNUSED SERIALS REPORT", metadata: ["SIRIM SERIAL NO."], data: remainingSerials.map((item: any) => [item]) }
         ];
         break;
-  
+
       default:
         console.error("Invalid section");
         return;
     }
-  
+
     // Save all the sections to Excel
     try {
       window.excel.save_to_excel(sheets);
@@ -364,7 +372,7 @@ export default function ProductionPage() {
       console.error("Failed to save to Excel:", error);
     }
   };
-  
+
 
   useEffect(() => {
     if (productionStatus !== "RUNNING") return;

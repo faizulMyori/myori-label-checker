@@ -14,6 +14,8 @@ export type UserContextType = {
   setConn: React.Dispatch<React.SetStateAction<"idle" | "connecting" | "connected" | "failed" | "disconnecting">>;
   route: string;
   setRoute: React.Dispatch<React.SetStateAction<string>>;
+  prodStatus: "started" | "stopped";
+  setProdStatus: React.Dispatch<React.SetStateAction<"started" | "stopped">>;
 };
 
 export const UserContext = React.createContext<UserContextType | null>(null);
@@ -22,6 +24,8 @@ export default function App() {
   const [user, setUser] = useState<null | undefined>(null);
   const [conn, setConn] = useState("failed");
   const [route, setRoute] = useState("");
+  const [prodStatus, setProdStatus] = useState("stopped");
+
   const { i18n } = useTranslation();
 
   useEffect(() => {
@@ -66,7 +70,7 @@ export default function App() {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser, conn, setConn, route, setRoute } as UserContextType}>
+    <UserContext.Provider value={{ user, setUser, conn, setConn, route, setRoute, prodStatus, setProdStatus } as UserContextType}>
       <RouterProvider router={router} />
     </UserContext.Provider>
   );

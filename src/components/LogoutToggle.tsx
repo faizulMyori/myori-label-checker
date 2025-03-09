@@ -11,7 +11,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 export default function LogoutToggle() {
   const [openLogout, setOpenLogout] = useState(false);
-  const { user, setUser, setRoute }: any = useContext(UserContext);
+  const { user, setUser, setRoute, prodStatus }: any = useContext(UserContext);
   const navigate = useNavigate();
   const toggleLogout = () => {
     console.log('masuk')
@@ -27,7 +27,7 @@ export default function LogoutToggle() {
 
   return (
     <>
-      <Button variant="destructive" onClick={toggleLogout}>
+      <Button variant="destructive" onClick={toggleLogout} disabled={prodStatus === 'started'}>
         Logout
       </Button>
 

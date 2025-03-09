@@ -10,13 +10,13 @@ import {
 import { Link } from "@tanstack/react-router";
 
 export default function CheckConn() {
-  const { conn, setConn, user, route, setRoute }: any = useContext(UserContext);
+  const { conn, setConn, user, route, setRoute, prodStatus }: any = useContext(UserContext);
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger>
-          <Link to={user ? "/setting" : "/"} onClick={() => setRoute(user ? "/setting" : "/")}>
+          <Link disabled={prodStatus === 'started'} to={user ? "/setting" : "/"} onClick={() => setRoute(user ? "/setting" : "/")}>
             {conn === "connected" && (<MonitorCheck className="h-8 w-8 text-green-500" />)}
             {conn === "failed" && (<MonitorDown className="h-8 w-8 text-red-500" />)}
             {conn === "connecting" && (<MonitorCog className="h-8 w-8 text-yellow-500" />)}
