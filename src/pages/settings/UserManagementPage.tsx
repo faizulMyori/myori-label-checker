@@ -52,7 +52,7 @@ export default function UserManagementPage() {
   const actions = [
     {
       permission: 'can:update:users',
-      label: 'Update',
+      label: 'Edit',
       onClick: (item: any) => {
         if (item.id === 1) return
         setForm({

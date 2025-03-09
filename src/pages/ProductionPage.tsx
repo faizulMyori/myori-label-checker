@@ -117,7 +117,7 @@ export default function ProductionPage() {
     ]);
   };
 
-  // Update label roll
+  // Edit label roll
   const updateLabelRoll = (id: string, field: keyof LabelRoll, value: string | boolean) => {
     setLabelRolls(labelRolls.map((roll) => (roll.id === id ? { ...roll, [field]: value } : roll)));
   };

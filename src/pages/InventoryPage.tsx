@@ -74,7 +74,7 @@ export default function Index() {
   const actions = [
     {
       permission: 'can:update:products',
-      label: 'Update',
+      label: 'Edit',
       onClick: (item: any) => {
         setForm(item)
         setOpenForm(true)
