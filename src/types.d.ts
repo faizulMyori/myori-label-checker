@@ -16,6 +16,7 @@ interface ElectronWindow {
   minimize: () => Promise<void>;
   maximize: () => Promise<void>;
   close: () => Promise<void>;
+  info: (title: any, message: any) => Promise<void>;
 }
 
 interface sqlite {

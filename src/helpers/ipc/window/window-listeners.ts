@@ -21,6 +21,18 @@ export function addWindowEventListeners(mainWindow: BrowserWindow) {
     mainWindow.close();
   });
 
+  ipcMain.handle(WIN_DIALOG_INFO, async (event, data) => {
+    console.log(data)
+    if (mainWindow) {
+      dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: data.title,
+        message: data.message,
+        buttons: ['OK']
+      });
+    }
+  });
+
   ipcMain.on(WIN_DIALOG_INFO, async (data: any) => {
     if (mainWindow) {
       dialog.showMessageBox(mainWindow, {

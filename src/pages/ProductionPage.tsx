@@ -143,15 +143,40 @@ export default function ProductionPage() {
       const end = parseInt(endMatch[2], 10);
 
       if (!isNaN(start) && !isNaN(end) && end >= start) {
-        //check in database if serial number exists from start to end
-        let startNumber = roll.startNumber
-        let endNumber = roll.endNumber
+        // Check if serial number exists from start to end in the database
+        let startNumber = roll.startNumber;
+        let endNumber = roll.endNumber;
         window.sqlite.check_serial_numbers({ startNumber, endNumber }).then((data: any) => {
-          console.log(data)
+          console.log(data);
           if (data.length === 0) {
-            updateLabelRoll(id, "verified", true);
+            // Check for duplicate serial numbers in the list of label rolls
+            const duplicate = labelRolls.some((r) => {
+              if (r.id !== id) { // Skip the current roll
+                const rStartMatch = r.startNumber.match(/^([A-Za-z]+)(\d+)$/);
+                const rEndMatch = r.endNumber.match(/^([A-Za-z]+)(\d+)$/);
+                if (rStartMatch && rEndMatch) {
+                  const rStartPrefix = rStartMatch[1];
+                  const rEndPrefix = rEndMatch[1];
+                  const rStart = parseInt(rStartMatch[2], 10);
+                  const rEnd = parseInt(rEndMatch[2], 10);
+
+                  // Check if the prefix matches and if there is overlap in serial number ranges
+                  if (startPrefix === rStartPrefix && endPrefix === rEndPrefix &&
+                    (start <= rEnd && end >= rStart)) {
+                    return true; // Found overlapping or duplicate range with matching prefix
+                  }
+                }
+              }
+              return false;
+            });
+
+            if (!duplicate) {
+              updateLabelRoll(id, "verified", true);
+            } else {
+              window.electronWindow.info("Error", "Duplicate serial numbers found in the list of label rolls.");
+            }
           }
-        })
+        });
       }
     }
   };
