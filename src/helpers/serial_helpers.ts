@@ -61,7 +61,11 @@ export function sendSerialData(cmd: string) {
     console.log(cmd)
     sendDconCommand(cmd)
         .then((response) => {
-            // if (cmd !== '@0100\r') sendData('@0100\r')
+            if (cmd !== '@0100\r') {
+                setTimeout(() => {
+                    sendSerialData('@0100\r')
+                }, 1500)
+            }
             console.log('Response:', response);
         })
         .catch((err) => {
