@@ -6,28 +6,24 @@ import path from "path";
 import { saveToExcel } from "../../excel_helpers";
 
 export function addExcelEventListeners(mainWindow: BrowserWindow) {
-    ipcMain.handle(EXCEL_SAVE, async (event, { metadata, data, title }) => {
+    ipcMain.handle(EXCEL_SAVE, async (event, { data }) => {
         if (!data || data.length === 0) {
             throw new Error('No data to save');
         }
 
-        const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
-            title: 'Save Excel File',
-            defaultPath: path.join(app.getPath('documents'), new Date().toISOString().slice(0, 10) + '-' + title + '.xlsx'),
-            filters: [{ name: 'Excel Files', extensions: ['xlsx'] }]
-        });
+        for (const items of data) {
+            // Show the save dialog for each file
+            const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+                title: `Save ${items.title} Excel File`,
+                defaultPath: path.join(app.getPath('documents'), new Date().toISOString().slice(0, 10) + '-' + items.title + '.xlsx'),
+                filters: [{ name: 'Excel Files', extensions: ['xlsx'] }]
+            });
 
-        if (canceled) return null;
+            if (canceled || !filePath) return; // If canceled or no file path, skip saving
 
-        if (!filePath) {
-            throw new Error('No file path selected');
+            // Save the file
+            await saveToExcel(filePath, [...[items.metadata], ...items.data], items.title);
         }
-
-        const metadataSheet = [metadata];
-
-        const dataRows = data;
-
-        return saveToExcel(filePath, [...metadataSheet, ...dataRows], 'Report');
     });
 }
 

@@ -57,6 +57,7 @@ export default function ProductionPage() {
   const [manualRejectEntries, setManualRejectEntries] = useState<ManualRejectEntry[]>([])
   const [isManualRejectModalOpen, setIsManualRejectModalOpen] = useState(false)
   const [newSerialNumber, setNewSerialNumber] = useState("")
+  const [newSerialNumbers, setNewSerialNumbers] = useState(['']); // Start with an empty field
   const [productData, setProductData] = useState({
     id: "",
     sku: "",
@@ -200,7 +201,7 @@ export default function ProductionPage() {
     setCapturedData([])
     setManualRejectEntries([])
     setDuplicatedData([])
-    setNewSerialNumber("")
+    setNewSerialNumbers([])
     setMissingData([])
   }
 
@@ -223,19 +224,57 @@ export default function ProductionPage() {
     }
   }
 
-  const addManualRejectEntry = () => {
-    if (newSerialNumber.trim()) {
-      setManualRejectEntries([
-        ...manualRejectEntries,
-        { id: Date.now().toString(), serialNumber: newSerialNumber.trim() },
-      ])
-      setNewSerialNumber("")
-      setIsManualRejectModalOpen(false)
+  const handleSerialNumberChange = (index: any, value: any) => {
+    const updatedSerialNumbers = [...newSerialNumbers];
+    updatedSerialNumbers[index] = value;
+    setNewSerialNumbers(updatedSerialNumbers);
+  };
+
+  const handleAddSerialNumberField = () => {
+    setNewSerialNumbers((prev) => [...prev, '']);
+  };
+
+  const handleRemoveSerialNumberField = (index: any) => {
+    const updatedSerialNumbers = newSerialNumbers.filter((_, i) => i !== index);
+    setNewSerialNumbers(updatedSerialNumbers);
+  };
+
+  const addManualRejectEntries = () => {
+    const validEntries = newSerialNumbers.filter((serialNumber) => serialNumber.trim() !== '');
+
+    if (validEntries.length > 0) {
+      setManualRejectEntries((prevEntries: any) => [
+        ...prevEntries,
+        ...validEntries.map((serialNumber) => ({
+          id: Date.now() + Math.random(), // Use a unique ID for each entry
+          serialNumber,
+        })),
+      ]);
+      setNewSerialNumbers(['']); // Reset the serial number fields
+      setIsManualRejectModalOpen(false);
     }
-  }
+  };
+
+  // const addManualRejectEntry = () => {
+  //   if (newSerialNumber.trim()) {
+  //     setManualRejectEntries([
+  //       ...manualRejectEntries,
+  //       { id: Date.now().toString(), serialNumber: newSerialNumber.trim() },
+  //     ])
+  //     setNewSerialNumber("")
+  //     setIsManualRejectModalOpen(false)
+  //   }
+  // }
+
+  // Handle deleting an entry
+  const handleDeleteEntry = (id: any) => {
+    setManualRejectEntries((prevEntries) => prevEntries.filter((entry) => entry.id !== id));
+  };
+
 
   const handleDownload = (section: string) => {
-    let metadata: any = [
+    // Common metadata for most sections
+    const metadata = [
       "SIRIM SERIAL NO.",
       "BATCH NO",
       "BRAND/TRADEMARK",
@@ -244,28 +283,11 @@ export default function ProductionPage() {
       "RATING",
       "SIZE"
     ];
-    let data: any = []
-    let title: any = 'Report'
-
-    if (section === "captured") {
-      data = capturedData
-        .filter(item => !missingData.some(dup => dup.serial === item.serial) && !manualRejectEntries.some(dup => dup.serialNumber === item.serial)) // Exclude duplicates first
-        .map((item: any) => [
-          item.serial,
-          batchNo,
-          productData.brand,
-          productData.model,
-          productData.type,
-          productData.rating,
-          productData.size
-        ]);
-
-      title = "SIRIM REPORT"
-    }
-
-    if (section === "manual-reject") {
-      data = manualRejectEntries.map((item: any) => [
-        item.serialNumber,
+  
+    // Function to map data items to the common structure
+    const mapData = (dataSource: any[]) => {
+      return dataSource.map((item: any) => [
+        item.serial || item.serialNumber, // Handle different naming conventions
         batchNo,
         productData.brand,
         productData.model,
@@ -273,57 +295,76 @@ export default function ProductionPage() {
         productData.rating,
         productData.size
       ]);
-
-      title = "MANUAL REJECT REPORT"
+    };
+  
+    let data: any = [];
+    let title = 'Report';
+    let sheets = [];
+  
+    // For different sections, get the relevant data
+    switch (section) {
+      case "captured":
+        data = capturedData
+          .filter(item => 
+            !missingData.some(dup => dup.serial === item.serial) &&
+            !manualRejectEntries.some(dup => dup.serialNumber === item.serial)
+          );
+        title = "SIRIM REPORT";
+        sheets.push({ title, metadata, data: mapData(data) });
+        break;
+  
+      case "manual-reject":
+        data = manualRejectEntries;
+        title = "MANUAL REJECT REPORT";
+        sheets.push({ title, metadata, data: mapData(data) });
+        break;
+  
+      case "missing":
+        data = missingData;
+        title = "MISSING REPORT";
+        sheets.push({ title, metadata, data: mapData(data) });
+        break;
+  
+      case "duplicate":
+        data = duplicatedData;
+        title = "DUPLICATE REPORT";
+        sheets.push({ title, metadata, data: mapData(data) });
+        break;
+  
+      case "unused-serials":
+        metadata.splice(1);  // Only "SIRIM SERIAL NO."
+        data = remainingSerials.map((item: any) => [item]);
+        title = "UNUSED SERIALS REPORT";
+        sheets.push({ title, metadata, data });
+        break;
+  
+      case "all":
+        // Combine all sections' data into a single download
+        sheets = [
+          { title: "SIRIM REPORT", metadata, data: mapData(capturedData.filter(item => 
+            !missingData.some(dup => dup.serial === item.serial) &&
+            !manualRejectEntries.some(dup => dup.serialNumber === item.serial)
+          )) },
+          { title: "MANUAL REJECT REPORT", metadata, data: mapData(manualRejectEntries) },
+          { title: "MISSING REPORT", metadata, data: mapData(missingData) },
+          { title: "DUPLICATE REPORT", metadata, data: mapData(duplicatedData) },
+          { title: "UNUSED SERIALS REPORT", metadata: ["SIRIM SERIAL NO."], data: remainingSerials.map((item: any) => [item]) }
+        ];
+        break;
+  
+      default:
+        console.error("Invalid section");
+        return;
     }
-
-    if (section === "missing") {
-      data = missingData.map((item: any) => [
-        item.serial,
-        batchNo,
-        productData.brand,
-        productData.model,
-        productData.type,
-        productData.rating,
-        productData.size
-      ]);
-
-      title = "MISSING REPORT"
-    }
-
-    if (section === "duplicate") {
-      data = duplicatedData.map((item: any) => [
-        item.serial,
-        batchNo,
-        productData.brand,
-        productData.model,
-        productData.type,
-        productData.rating,
-        productData.size
-      ]);
-
-      title = "DUPLICATE REPORT"
-    }
-
-    if (section === "unused-serials") {
-      metadata = ["SIRIM SERIAL NO."];
-      data = remainingSerials.map((item: any) => [
-        item
-      ])
-
-      title = "UNUSED SERIALS REPORT"
-    }
-
+  
+    // Save all the sections to Excel
     try {
-      window.excel.save_to_excel(
-        metadata,
-        data,
-        title
-      )
+      window.excel.save_to_excel(sheets);
     } catch (error) {
-      console.error("Failed to save to Excel:", error)
+      console.error("Failed to save to Excel:", error);
     }
-  }
+  };
+  
 
   useEffect(() => {
     if (productionStatus !== "RUNNING") return;
@@ -626,6 +667,14 @@ export default function ProductionPage() {
                     >
                       Stop Production
                     </Button>
+                    <Button
+                      size="lg"
+                      className="bg-slate-700 hover:bg-slate-600"
+                      disabled={productionStatus === "RUNNING"}
+                      onClick={() => handleDownload('all')}
+                    >
+                      Download Reports
+                    </Button>
                   </div>
                   <div
                     className={`text-lg font-semibold ${productionStatus === "RUNNING"
@@ -768,8 +817,16 @@ export default function ProductionPage() {
                     <CardContent className="h-[200px] overflow-y-auto">
                       <div className="space-y-2">
                         {manualRejectEntries.map((entry) => (
-                          <div key={entry.id} className="text-sm">
-                            {entry.serialNumber}
+                          <div key={entry.id} className="flex items-center justify-between text-sm">
+                            <span>{entry.serialNumber}</span>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteEntry(entry.id)}
+                              className="ml-2"
+                            >
+                              Delete
+                            </Button>
                           </div>
                         ))}
                       </div>
@@ -781,25 +838,39 @@ export default function ProductionPage() {
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px]">
                           <DialogHeader>
-                            <DialogTitle>Add Manual Reject Entry</DialogTitle>
-                            <DialogDescription>Enter the serial number for the manual reject entry.</DialogDescription>
+                            <DialogTitle>Add Manual Reject Entries</DialogTitle>
+                            <DialogDescription>Enter the serial numbers for the manual reject entries.</DialogDescription>
                           </DialogHeader>
                           <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="serialNumber" className="text-right">
-                                Serial Number
-                              </Label>
-                              <Input
-                                id="serialNumber"
-                                value={newSerialNumber}
-                                onChange={(e) => setNewSerialNumber(e.target.value)}
-                                className="col-span-3"
-                              />
-                            </div>
+                            {newSerialNumbers.map((serialNumber, index) => (
+                              <div key={index} className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor={`serialNumber-${index}`} className="text-right">
+                                  Serial Number {index + 1}
+                                </Label>
+                                <Input
+                                  id={`serialNumber-${index}`}
+                                  value={serialNumber}
+                                  onChange={(e) => handleSerialNumberChange(index, e.target.value)}
+                                  className="col-span-3"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleRemoveSerialNumberField(index)}
+                                  className="col-span-1"
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
                           </div>
-                          <div className="flex justify-end">
-                            <Button type="button" onClick={addManualRejectEntry}>
-                              Add Entry
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" onClick={handleAddSerialNumberField}>
+                              Add Another Serial Number
+                            </Button>
+                            <Button type="button" onClick={addManualRejectEntries}>
+                              Add Entries
                             </Button>
                           </div>
                         </DialogContent>
