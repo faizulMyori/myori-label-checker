@@ -189,7 +189,7 @@ export function addDBEventListeners() {
   ipcMain.handle(DB_CREATE_BATCH, async (event, data) => {
     try {
       let create = await executeQuery("INSERT INTO batches (batch_no, shift_number, product_id, date) VALUES (?, ?, ?, ?)", [data.batch_no, data.shift_number, data.product_id, data.date]);
-      if (create) return await fetchOne("SELECT * FROM batches WHERE shift_number = ?", [data.shift_number]);
+      if (create) return await fetchOne("SELECT * FROM batches WHERE shift_number = ? AND batch_no = ?", [data.shift_number, data.batch_no]);
     } catch (error) {
       return false;
     }

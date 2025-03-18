@@ -41,7 +41,7 @@ type ManualRejectEntry = {
 }
 
 export default function ProductionPage() {
-  const { prodStatus, setProdStatus }: any = useContext(UserContext)
+  const { prodStatus, setProdStatus, conn }: any = useContext(UserContext)
 
   const [capturedData, setCapturedData] = useState([] as any[])
   const [duplicatedData, setDuplicatedData] = useState([] as any[])
@@ -249,8 +249,13 @@ export default function ProductionPage() {
 
   // Resume production from hold
   const resumeProduction = () => {
-    setProdStatus("started")
-    setProductionStatus("RUNNING")
+    if (conn !== "connected") {
+      setProdStatus("hold")
+      setProductionStatus("HOLD")
+    } else {
+      setProdStatus("started")
+      setProductionStatus("RUNNING")
+    }
   }
 
   // Stop production
@@ -351,7 +356,8 @@ export default function ProductionPage() {
         data = capturedData.filter(
           (item) =>
             !missingData.some((dup) => dup.serial === item.serial) &&
-            !manualRejectEntries.some((dup) => dup.serialNumber === item.serial),
+            !manualRejectEntries.some((dup) => dup.serialNumber === item.serial) &&
+            item.status !== "NG"
         )
         title = "SIRIM REPORT"
         sheets.push({ title, metadata, data: mapData(data) })
@@ -421,114 +427,147 @@ export default function ProductionPage() {
   }
 
   useEffect(() => {
-    if (productionStatus !== "RUNNING") return
-    console.log(productionStatus)
-    const handleTcpData = (data: any) => {
-      let [serial, url, status] = data.split(",").map((data: string) => data.trim())
-      console.log("Received Data:", data)
+    if (conn !== "connected" && productionStatus === "RUNNING") {
+      setProdStatus("hold")
+      setProductionStatus("HOLD")
+    }
+  }, [conn])
 
-      if (!status) return // Ignore invalid data
-      if (productionStatus !== "RUNNING") return
+  useEffect(() => {
+    if (productionStatus !== "RUNNING") {
+      return () => {
+        window.tcpConnection.tcp_received(undefined); // Properly remove listener
+      };
+    }
+
+    const handleTcpData = (data: any) => {
+      let [serial, url, status] = data.split(',').map((data: string) => data.trim());
+      console.log("Received Data:", data);
+
+      if (!status) return; // Ignore invalid data
+      if (productionStatus !== "RUNNING") return;
 
       setCapturedData((prevData) => {
         if (prevData.length > 0) {
-          const lastEntry = prevData[prevData.length - 1]
-          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
+          const lastEntry = prevData[prevData.length - 1];
+          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/);
 
           if (match) {
-            const prefix = match[1]
-            const lastSerialNum = Number.parseInt(match[2], 10)
-            const numLength = match[2].length
+            const prefix = match[1];
+            const lastSerialNum = parseInt(match[2], 10);
+            const numLength = match[2].length;
 
-            const currentMatch = serial.match(/^([A-Za-z]+)(\d+)$/)
+            const currentMatch = serial.match(/^([A-Za-z]+)(\d+)$/);
             if (currentMatch) {
-              const currentSerialNum = Number.parseInt(currentMatch[2], 10)
+              const currentSerialNum = parseInt(currentMatch[2], 10);
               if (currentSerialNum > lastSerialNum + 1) {
                 for (let i = lastSerialNum + 1; i < currentSerialNum; i++) {
-                  const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`
-                  setMissingData((prevMissing) => [
-                    ...prevMissing,
-                    { serial: skippedSerial, url: lastEntry.url, status: "MISSING" },
-                  ])
+                  const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`;
+                  setMissingData((prevMissing) => [...prevMissing, { serial: skippedSerial, url: lastEntry.url, status: "MISSING" }]);
                 }
               }
             }
           }
         }
-        return prevData
-      })
+        return prevData;
+      });
 
       if (!serial || !url) {
         setCapturedData((prevData) => {
-          if (prevData.length === 0) return prevData
+          if (prevData.length === 0) return prevData;
 
-          const lastEntry = prevData[prevData.length - 1]
-          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
-          if (!match) return prevData
+          const lastEntry = prevData[prevData.length - 1];
+          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/);
+          if (!match) return prevData;
 
-          const prefix = match[1]
-          const lastSerialNum = Number.parseInt(match[2], 10)
-          const numLength = match[2].length
+          const prefix = match[1];
+          const lastSerialNum = parseInt(match[2], 10);
+          const numLength = match[2].length;
 
-          const newSerialNum = lastSerialNum + 1
-          serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`
+          const newSerialNum = lastSerialNum + 1;
+          serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`;
 
-          url = lastEntry.url
-          const newEntry = { serial, url, status }
+          url = lastEntry.url;
+          const newEntry = { serial, url, status };
 
-          setMissingData((prevMissing) => [...prevMissing, newEntry])
-          return [...prevData, newEntry]
-        })
-        return
+          setMissingData((prevMissing) => [...prevMissing, newEntry]);
+          return [...prevData, newEntry];
+        });
+        return;
       }
 
-      const serialNum = Number.parseInt(serial.replace(/\D/g, ""), 10)
+      if (serial && url && status === "NG") {
+        setCapturedData((prevData) => {
+          if (prevData.length === 0) return prevData;
+
+          const lastEntry = prevData[prevData.length - 1];
+          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/);
+          if (!match) return prevData;
+
+          const prefix = match[1];
+          const lastSerialNum = parseInt(match[2], 10);
+          const numLength = match[2].length;
+
+          const newSerialNum = lastSerialNum + 1;
+          serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`;
+
+          url = lastEntry.url;
+          const newEntry = { serial, url, status };
+
+          setMissingData((prevMissing) => [...prevMissing, newEntry]);
+          return [...prevData, newEntry];
+        });
+        return;
+      }
+
+      const serialNum = parseInt(serial.replace(/\D/g, ""), 10);
       const isValidSerial = labelRolls.some(({ startNumber, endNumber }) => {
-        const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/)
-        const endMatch = endNumber.match(/^([A-Za-z]+)(\d+)$/)
-        if (!startMatch || !endMatch) return false
+        const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/);
+        const endMatch = endNumber.match(/^([A-Za-z]+)(\d+)$/);
+        if (!startMatch || !endMatch) return false;
 
-        const startPrefix = startMatch[1]
-        const endPrefix = endMatch[1]
-        if (startPrefix !== endPrefix) return false
+        const startPrefix = startMatch[1];
+        const endPrefix = endMatch[1];
+        if (startPrefix !== endPrefix) return false;
 
-        const start = Number.parseInt(startMatch[2], 10)
-        const end = Number.parseInt(endMatch[2], 10)
+        const start = parseInt(startMatch[2], 10);
+        const end = parseInt(endMatch[2], 10);
 
-        return serial.startsWith(startPrefix) && serialNum >= start && serialNum <= end
-      })
+        return serial.startsWith(startPrefix) && serialNum >= start && serialNum <= end;
+      });
 
-      if (!isValidSerial) return
+      if (!isValidSerial) return;
 
       setCapturedData((prevData) => {
-        const alreadyCaptured = prevData.some((entry) => entry.serial === serial)
+        const alreadyCaptured = prevData.some(entry => entry.serial === serial);
 
         if (alreadyCaptured) {
           setDuplicatedData((prevDuplicates) => {
-            if (!prevDuplicates.some((dup) => dup.serial === serial)) {
-              return [...prevDuplicates, { serial, url, status }]
+            if (!prevDuplicates.some(dup => dup.serial === serial)) {
+              return [...prevDuplicates, { serial, url, status }];
             }
-            return prevDuplicates
-          })
+            return prevDuplicates;
+          });
 
-          window.serial.serial_com_send("@0101\r")
-          return prevData
+          window.serial.serial_com_send("@0101\r");
+          return prevData;
         }
 
-        if (manualRejectEntries.some((entry) => entry.serialNumber === serial)) {
-          return prevData
+        if (manualRejectEntries.some(entry => entry.serialNumber === serial)) {
+          return prevData;
         }
 
-        return [...prevData, { serial, url, status }]
-      })
-    }
+        return [...prevData, { serial, url, status }];
+      });
+    };
 
-    window.tcpConnection.tcp_received(handleTcpData)
+    window.tcpConnection.tcp_received(handleTcpData);
 
     return () => {
-      window.tcpConnection.tcp_received(null)
-    }
-  }, [productionStatus])
+      window.tcpConnection.tcp_received(undefined); // Properly remove listener
+    };
+  }, [productionStatus]);
+
 
   // Generate list of all possible serials
   const totalSerials = labelRolls.flatMap(({ startNumber, endNumber }) => {
@@ -851,10 +890,8 @@ export default function ProductionPage() {
                     <CardContent className="h-[200px] overflow-y-auto">
                       {capturedData.map((item, index) => (
                         <div key={index} className="text-sm">
-                          {item.status === "OK" ? (
+                          {item.status === "OK" && (
                             `${item.serial}, ${item.url}, ${item.status}`
-                          ) : (
-                            <span className="text-red-500">{`${item.serial}, ${item.url}, ${item.status}`}</span>
                           )}
                         </div>
                       ))}

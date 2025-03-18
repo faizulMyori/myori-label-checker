@@ -1,14 +1,21 @@
 import net from 'net';
 import {
     TCP_CLOSED,
+    TCP_CONNECTED,
     TCP_ERROR,
     TCP_RECEIVE
 } from "../helpers/ipc/tcp/tcp-channels";
+import { ipcMain } from 'electron';
+import { WIN_DIALOG_INFO } from './ipc/window/window-channels';
 
-let client: any = null;
+let client: net.Socket | null = null;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_DELAY = 5000; // 5 seconds
 
-export async function connectTcp(ip: any, port: any, event: any) {
-    console.log(ip)
+export async function connectTcp(ip: string, port: number, event: any) {
+    console.log(`Attempting to connect to ${ip}:${port}`);
+
     return new Promise((resolve, reject) => {
         if (!ip || !port) {
             reject('Invalid IP or Port');
@@ -21,40 +28,85 @@ export async function connectTcp(ip: any, port: any, event: any) {
         }
 
         client = new net.Socket();
+
         const connectionTimeout = setTimeout(() => {
-            client.destroy();
+            if (client) client.destroy();
             reject('Connection timeout');
         }, 10000);
 
         client.connect(port, ip, () => {
             clearTimeout(connectionTimeout);
+            console.log('Connected successfully');
             resolve('Connected successfully');
-            client.on('data', (data: any) => {
+            reconnectAttempts = 0; // Reset reconnect attempts on success
+            event.sender.send(TCP_CONNECTED);
+            client?.removeAllListeners(); // Remove all previous listeners
+
+            // Listen for incoming data
+            client?.on('data', (data: Buffer) => {
                 try {
                     const dataString = data.toString().trim();
+                    console.log(`Received: ${dataString}`);
                     event.sender.send(TCP_RECEIVE, dataString);
                 } catch (parseError: any) {
                     event.sender.send(TCP_ERROR, parseError.message);
                 }
             });
 
-            client.on('close', () => {
-                console.log('Connection closed');
+            // Handle connection close (Trigger reconnection)
+            client?.on('close', () => {
+                console.log('TCP connection closed');
                 event.sender.send(TCP_CLOSED);
+                client = null; // Reset client for reconnection
+                attemptReconnect(ip, port, event);
+                ipcMain.emit(WIN_DIALOG_INFO, {
+                    title: "Error",
+                    message: `Connection Closed! Reconnecting....`,
+                });
+            });
+
+            // Handle errors (Trigger reconnection)
+            client?.on('error', (err: Error) => {
+                console.error(`TCP Connection Error: ${err.message}`);
+                event.sender.send(TCP_ERROR, err.message);
+                client = null; // Reset client for reconnection
+                attemptReconnect(ip, port, event);
             });
         });
 
-        client.on('error', (err: any) => {
+        client.on('error', (err: Error) => {
             clearTimeout(connectionTimeout);
-            reject(`Connection error: ${err.message}`);
+            console.error(`TCP Connection Error: ${err.message}`);
+            event.sender.send(TCP_ERROR, err.message);
+            client = null; // Reset client for reconnection
+            attemptReconnect(ip, port, event);
         });
     });
+}
+
+// Attempt to reconnect with a delay
+function attemptReconnect(ip: string, port: number, event: any) {
+    // if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    //     console.error("Max reconnect attempts reached. Stopping reconnect attempts.");
+    //     return;
+    // }
+
+    // reconnectAttempts++;
+    console.log(`Reconnecting in ${RECONNECT_DELAY / 1000} seconds...`);
+
+    setTimeout(() => {
+        connectTcp(ip, port, event)
+            .then(() => console.log('Reconnected successfully'))
+            .catch((err) => console.error(`Reconnect failed: ${err}`));
+    }, RECONNECT_DELAY);
 }
 
 export function closeTcpConnection() {
     return new Promise((resolve, reject) => {
         if (client && !client.destroyed) {
             client.end(() => {
+                client?.destroy();
+                client = null;
                 resolve('Connection closed successfully');
             });
         } else {
@@ -86,15 +138,15 @@ export function sendData(cmd: string) {
         });
 }
 
-function sendDconCommand(command:string) {
+function sendDconCommand(command: string) {
     return new Promise((resolve, reject) => {
         // write to dcon rs485
-        
-        client.write(command, 'ascii', (err:any) => {
+
+        client?.write(command, 'ascii', (err: any) => {
             if (err) {
                 return reject(err);
             }
-            client.on('data', (data:any) => {
+            client?.on('data', (data: any) => {
                 resolve(data.toString('ascii')); // Convert response buffer to ASCII string
             });
         });

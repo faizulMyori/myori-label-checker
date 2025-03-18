@@ -63,10 +63,15 @@ export default function App() {
       }
     )
     window.tcpConnection.tcp_closed(renderConnectionStatus);
+    window.tcpConnection.tcp_connected(renderConnectionConnected);
   }, []);
 
   const renderConnectionStatus = useCallback(() => {
     setConn("idle");
+  }, []);
+
+  const renderConnectionConnected = useCallback(() => {
+    setConn("connected");
   }, []);
 
   return (

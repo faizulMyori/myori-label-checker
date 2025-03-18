@@ -61,7 +61,7 @@ interface sqlite {
 
   create_storage_treshold: (value: any) => Promise<void>;
   get_storage_treshold: () => Promise<void>;
-  
+
   create_connection: (ip: any, port: any, com: any) => Promise<void>;
   get_connections: () => Promise<void>;
 }
@@ -70,12 +70,13 @@ interface tcpConnection {
   tcp_connect: (connectionDetails: any) => Promise<void>;
   tcp_disconnect: () => Promise<void>;
   tcp_closed: (callback: any) => Promise<void>;
+  tcp_connected: (callback: any) => Promise<void>;
   tcp_received: (callback: any) => Promise<void>;
   tcp_send: (data: any) => Promise<void>;
 }
 
 interface excel {
-  save_to_excel: (data:any) => Promise<void>;
+  save_to_excel: (data: any) => Promise<void>;
 }
 
 interface serial {
@@ -87,8 +88,8 @@ interface serial {
 }
 
 interface disk {
-  disk_get: (path:any) => Promise<void>;
-  disk_check_space: (path:any) => Promise<void>;
+  disk_get: (path: any) => Promise<void>;
+  disk_check_space: (path: any) => Promise<void>;
 }
 
 declare interface Window {
