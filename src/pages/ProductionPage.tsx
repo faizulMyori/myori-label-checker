@@ -1,5 +1,7 @@
-import { useCallback, useContext, useEffect, useState } from "react"
-import { Plus, Check, RefreshCcw, Download } from "lucide-react"
+"use client"
+
+import { useContext, useEffect, useState } from "react"
+import { Plus, Check, Download } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,9 +16,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import React from "react"
 import Footer from "@/components/template/Footer"
 import { UserContext } from "@/App"
+import React from "react"
 
 type LabelRoll = {
   id: string
@@ -39,7 +41,7 @@ type ManualRejectEntry = {
 }
 
 export default function ProductionPage() {
-  const { prodStatus, setProdStatus }: any = useContext(UserContext);
+  const { prodStatus, setProdStatus }: any = useContext(UserContext)
 
   const [capturedData, setCapturedData] = useState([] as any[])
   const [duplicatedData, setDuplicatedData] = useState([] as any[])
@@ -47,6 +49,7 @@ export default function ProductionPage() {
   const [open, setOpen] = useState(false)
   const [batchID, setBatchID] = useState("")
   const [batchNo, setBatchNo] = useState("")
+  const [shiftNo, setShiftNo] = useState("")
   const [batches, setBatches] = useState([])
   const [batchError, setBatchError] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState("")
@@ -55,12 +58,12 @@ export default function ProductionPage() {
   ])
   const [products, setProducts] = useState([] as any[])
   const [loading, setLoading] = useState(false)
-  const [productionStatus, setProductionStatus] = useState<"IDLE" | "RUNNING" | "STOPPED">("IDLE")
+  const [productionStatus, setProductionStatus] = useState<"IDLE" | "RUNNING" | "STOPPED" | "HOLD">("IDLE")
   const [savedProduction, setSavedProduction] = useState<ProductionData | null>(null)
   const [manualRejectEntries, setManualRejectEntries] = useState<ManualRejectEntry[]>([])
   const [isManualRejectModalOpen, setIsManualRejectModalOpen] = useState(false)
   const [newSerialNumber, setNewSerialNumber] = useState("")
-  const [newSerialNumbers, setNewSerialNumbers] = useState(['']); // Start with an empty field
+  const [newSerialNumbers, setNewSerialNumbers] = useState([""]) // Start with an empty field
   const [productData, setProductData] = useState({
     id: "",
     sku: "",
@@ -77,26 +80,26 @@ export default function ProductionPage() {
   const calculateTotalLabels = () => {
     return labelRolls.reduce((total, roll) => {
       if (roll.verified && roll.startNumber && roll.endNumber) {
-        const startMatch = roll.startNumber.match(/^([A-Za-z]+)(\d+)$/);
-        const endMatch = roll.endNumber.match(/^([A-Za-z]+)(\d+)$/);
+        const startMatch = roll.startNumber.match(/^([A-Za-z]+)(\d+)$/)
+        const endMatch = roll.endNumber.match(/^([A-Za-z]+)(\d+)$/)
 
-        if (!startMatch || !endMatch) return total; // Skip invalid format
+        if (!startMatch || !endMatch) return total // Skip invalid format
 
-        const startPrefix = startMatch[1];
-        const endPrefix = endMatch[1];
+        const startPrefix = startMatch[1]
+        const endPrefix = endMatch[1]
 
-        if (startPrefix !== endPrefix) return total; // Ensure same prefix
+        if (startPrefix !== endPrefix) return total // Ensure same prefix
 
-        const start = parseInt(startMatch[2], 10);
-        const end = parseInt(endMatch[2], 10);
+        const start = Number.parseInt(startMatch[2], 10)
+        const end = Number.parseInt(endMatch[2], 10)
 
         if (!isNaN(start) && !isNaN(end) && end >= start) {
-          return total + (end - start + 1);
+          return total + (end - start + 1)
         }
       }
-      return total;
-    }, 0);
-  };
+      return total
+    }, 0)
+  }
 
   useEffect(() => {
     window.sqlite.get_batchs().then((data: any) => {
@@ -107,7 +110,7 @@ export default function ProductionPage() {
 
   // Add new label roll
   const addLabelRoll = () => {
-    const newRollNumber = (labelRolls.length + 1).toString();
+    const newRollNumber = (labelRolls.length + 1).toString()
     setLabelRolls([
       ...labelRolls,
       {
@@ -117,70 +120,69 @@ export default function ProductionPage() {
         endNumber: "",
         verified: false,
       },
-    ]);
-  };
+    ])
+  }
 
   // Edit label roll
   const updateLabelRoll = (id: string, field: keyof LabelRoll, value: string | boolean) => {
-    setLabelRolls(labelRolls.map((roll) => (roll.id === id ? { ...roll, [field]: value } : roll)));
-  };
+    setLabelRolls(labelRolls.map((roll) => (roll.id === id ? { ...roll, [field]: value } : roll)))
+  }
 
   // Verify label roll
   const verifyLabelRoll = (id: string) => {
-    const roll = labelRolls.find((r) => r.id === id);
+    const roll = labelRolls.find((r) => r.id === id)
     if (roll && roll.rollNumber && roll.startNumber && roll.endNumber) {
-      const startMatch = roll.startNumber.match(/^([A-Za-z]+)(\d+)$/);
-      const endMatch = roll.endNumber.match(/^([A-Za-z]+)(\d+)$/);
+      const startMatch = roll.startNumber.match(/^([A-Za-z]+)(\d+)$/)
+      const endMatch = roll.endNumber.match(/^([A-Za-z]+)(\d+)$/)
 
-      if (!startMatch || !endMatch) return; // Invalid format, skip
+      if (!startMatch || !endMatch) return // Invalid format, skip
 
-      const startPrefix = startMatch[1];
-      const endPrefix = endMatch[1];
+      const startPrefix = startMatch[1]
+      const endPrefix = endMatch[1]
 
-      if (startPrefix !== endPrefix) return; // Ensure prefix consistency
+      if (startPrefix !== endPrefix) return // Ensure prefix consistency
 
-      const start = parseInt(startMatch[2], 10);
-      const end = parseInt(endMatch[2], 10);
+      const start = Number.parseInt(startMatch[2], 10)
+      const end = Number.parseInt(endMatch[2], 10)
 
       if (!isNaN(start) && !isNaN(end) && end >= start) {
         // Check if serial number exists from start to end in the database
-        let startNumber = roll.startNumber;
-        let endNumber = roll.endNumber;
+        const startNumber = roll.startNumber
+        const endNumber = roll.endNumber
         window.sqlite.check_serial_numbers({ startNumber, endNumber }).then((data: any) => {
-          console.log(data);
+          console.log(data)
           if (data.length === 0) {
             // Check for duplicate serial numbers in the list of label rolls
             const duplicate = labelRolls.some((r) => {
-              if (r.id !== id) { // Skip the current roll
-                const rStartMatch = r.startNumber.match(/^([A-Za-z]+)(\d+)$/);
-                const rEndMatch = r.endNumber.match(/^([A-Za-z]+)(\d+)$/);
+              if (r.id !== id) {
+                // Skip the current roll
+                const rStartMatch = r.startNumber.match(/^([A-Za-z]+)(\d+)$/)
+                const rEndMatch = r.endNumber.match(/^([A-Za-z]+)(\d+)$/)
                 if (rStartMatch && rEndMatch) {
-                  const rStartPrefix = rStartMatch[1];
-                  const rEndPrefix = rEndMatch[1];
-                  const rStart = parseInt(rStartMatch[2], 10);
-                  const rEnd = parseInt(rEndMatch[2], 10);
+                  const rStartPrefix = rStartMatch[1]
+                  const rEndPrefix = rEndMatch[1]
+                  const rStart = Number.parseInt(rStartMatch[2], 10)
+                  const rEnd = Number.parseInt(rEndMatch[2], 10)
 
                   // Check if the prefix matches and if there is overlap in serial number ranges
-                  if (startPrefix === rStartPrefix && endPrefix === rEndPrefix &&
-                    (start <= rEnd && end >= rStart)) {
-                    return true; // Found overlapping or duplicate range with matching prefix
+                  if (startPrefix === rStartPrefix && endPrefix === rEndPrefix && start <= rEnd && end >= rStart) {
+                    return true // Found overlapping or duplicate range with matching prefix
                   }
                 }
               }
-              return false;
-            });
+              return false
+            })
 
             if (!duplicate) {
-              updateLabelRoll(id, "verified", true);
+              updateLabelRoll(id, "verified", true)
             } else {
-              window.electronWindow.info("Error", "Duplicate serial numbers found in the list of label rolls.");
+              window.electronWindow.info("Error", "Duplicate serial numbers found in the list of label rolls.")
             }
           }
-        });
+        })
       }
     }
-  };
-
+  }
 
   // Load products when dialog opens
   const handleOpenChange = async (isOpen: boolean) => {
@@ -205,19 +207,24 @@ export default function ProductionPage() {
     const productData = {
       date: today,
       batchNo,
+      shiftNo: shiftNo,
       product: selectedProduct,
       labelRolls,
     }
     setSavedProduction(productData)
-    window.sqlite.create_batch({
-      date: today,
-      batch_no: batchNo,
-      product_id: selectedProduct,
-    }).then((data: any) => {
-      setBatchID(data?.id)
-    }).catch((error: any) => {
-      console.log(error)
-    })
+    window.sqlite
+      .create_batch({
+        date: today,
+        batch_no: batchNo,
+        product_id: selectedProduct,
+        shift_number: shiftNo,
+      })
+      .then((data: any) => {
+        setBatchID(data?.id)
+      })
+      .catch((error: any) => {
+        console.log(error)
+      })
     setOpen(false)
   }
 
@@ -234,6 +241,18 @@ export default function ProductionPage() {
     setMissingData([])
   }
 
+  // Hold production
+  const holdProduction = () => {
+    setProdStatus("hold")
+    setProductionStatus("HOLD")
+  }
+
+  // Resume production from hold
+  const resumeProduction = () => {
+    setProdStatus("started")
+    setProductionStatus("RUNNING")
+  }
+
   // Stop production
   const stopProduction = () => {
     setProdStatus("stopped")
@@ -241,37 +260,40 @@ export default function ProductionPage() {
     setProductionStatus("STOPPED")
     if (labelRolls.length > 0) {
       capturedData.forEach((item: any) => {
-        window.sqlite.create_label({
-          batch_id: batchID,
-          serial: item.serial,
-          qr_code: item.url,
-          status: item.status,
-        }).then((data: any) => {
-          console.log(data)
-        }).catch((error: any) => {
-          console.log(error)
-        })
+        window.sqlite
+          .create_label({
+            batch_id: batchID,
+            serial: item.serial,
+            qr_code: item.url,
+            status: item.status,
+          })
+          .then((data: any) => {
+            console.log(data)
+          })
+          .catch((error: any) => {
+            console.log(error)
+          })
       })
     }
   }
 
   const handleSerialNumberChange = (index: any, value: any) => {
-    const updatedSerialNumbers = [...newSerialNumbers];
-    updatedSerialNumbers[index] = value;
-    setNewSerialNumbers(updatedSerialNumbers);
-  };
+    const updatedSerialNumbers = [...newSerialNumbers]
+    updatedSerialNumbers[index] = value
+    setNewSerialNumbers(updatedSerialNumbers)
+  }
 
   const handleAddSerialNumberField = () => {
-    setNewSerialNumbers((prev) => [...prev, '']);
-  };
+    setNewSerialNumbers((prev) => [...prev, ""])
+  }
 
   const handleRemoveSerialNumberField = (index: any) => {
-    const updatedSerialNumbers = newSerialNumbers.filter((_, i) => i !== index);
-    setNewSerialNumbers(updatedSerialNumbers);
-  };
+    const updatedSerialNumbers = newSerialNumbers.filter((_, i) => i !== index)
+    setNewSerialNumbers(updatedSerialNumbers)
+  }
 
   const addManualRejectEntries = () => {
-    const validEntries = newSerialNumbers.filter((serialNumber) => serialNumber.trim() !== '');
+    const validEntries = newSerialNumbers.filter((serialNumber) => serialNumber.trim() !== "")
 
     if (validEntries.length > 0) {
       setManualRejectEntries((prevEntries: any) => [
@@ -280,11 +302,11 @@ export default function ProductionPage() {
           id: Date.now() + Math.random(), // Use a unique ID for each entry
           serialNumber,
         })),
-      ]);
-      setNewSerialNumbers(['']); // Reset the serial number fields
-      setIsManualRejectModalOpen(false);
+      ])
+      setNewSerialNumbers([""]) // Reset the serial number fields
+      setIsManualRejectModalOpen(false)
     }
-  };
+  }
 
   // const addManualRejectEntry = () => {
   //   if (newSerialNumber.trim()) {
@@ -299,21 +321,12 @@ export default function ProductionPage() {
 
   // Handle deleting an entry
   const handleDeleteEntry = (id: any) => {
-    setManualRejectEntries((prevEntries) => prevEntries.filter((entry) => entry.id !== id));
-  };
-
+    setManualRejectEntries((prevEntries) => prevEntries.filter((entry) => entry.id !== id))
+  }
 
   const handleDownload = (section: string) => {
     // Common metadata for most sections
-    const metadata = [
-      "SIRIM SERIAL NO.",
-      "BATCH NO",
-      "BRAND/TRADEMARK",
-      "MODEL",
-      "TYPE",
-      "RATING",
-      "SIZE"
-    ];
+    const metadata = ["SIRIM SERIAL NO.", "BATCH NO", "BRAND/TRADEMARK", "MODEL", "TYPE", "RATING", "SIZE"]
 
     // Function to map data items to the common structure
     const mapData = (dataSource: any[]) => {
@@ -324,213 +337,224 @@ export default function ProductionPage() {
         productData.model,
         productData.type,
         productData.rating,
-        productData.size
-      ]);
-    };
+        productData.size,
+      ])
+    }
 
-    let data: any = [];
-    let title = 'Report';
-    let sheets = [];
+    let data: any = []
+    let title = "Report"
+    let sheets = []
 
     // For different sections, get the relevant data
     switch (section) {
       case "captured":
-        data = capturedData
-          .filter(item =>
-            !missingData.some(dup => dup.serial === item.serial) &&
-            !manualRejectEntries.some(dup => dup.serialNumber === item.serial)
-          );
-        title = "SIRIM REPORT";
-        sheets.push({ title, metadata, data: mapData(data) });
-        break;
+        data = capturedData.filter(
+          (item) =>
+            !missingData.some((dup) => dup.serial === item.serial) &&
+            !manualRejectEntries.some((dup) => dup.serialNumber === item.serial),
+        )
+        title = "SIRIM REPORT"
+        sheets.push({ title, metadata, data: mapData(data) })
+        break
 
       case "manual-reject":
-        data = manualRejectEntries;
-        title = "MANUAL REJECT REPORT";
-        sheets.push({ title, metadata, data: mapData(data) });
-        break;
+        data = manualRejectEntries
+        title = "MANUAL REJECT REPORT"
+        sheets.push({ title, metadata, data: mapData(data) })
+        break
 
       case "missing":
-        data = missingData;
-        title = "MISSING REPORT";
-        sheets.push({ title, metadata, data: mapData(data) });
-        break;
+        data = missingData
+        title = "MISSING REPORT"
+        sheets.push({ title, metadata, data: mapData(data) })
+        break
 
       case "duplicate":
-        data = duplicatedData;
-        title = "DUPLICATE REPORT";
-        sheets.push({ title, metadata, data: mapData(data) });
-        break;
+        data = duplicatedData
+        title = "DUPLICATE REPORT"
+        sheets.push({ title, metadata, data: mapData(data) })
+        break
 
       case "unused-serials":
-        metadata.splice(1);  // Only "SIRIM SERIAL NO."
-        data = remainingSerials.map((item: any) => [item]);
-        title = "UNUSED SERIALS REPORT";
-        sheets.push({ title, metadata, data });
-        break;
+        metadata.splice(1) // Only "SIRIM SERIAL NO."
+        data = remainingSerials.map((item: any) => [item])
+        title = "UNUSED SERIALS REPORT"
+        sheets.push({ title, metadata, data })
+        break
 
       case "all":
         // Combine all sections' data into a single download
         sheets = [
           {
-            title: "SIRIM REPORT", metadata, data: mapData(capturedData.filter(item =>
-              !missingData.some(dup => dup.serial === item.serial) &&
-              !manualRejectEntries.some(dup => dup.serialNumber === item.serial)
-            ))
+            title: "SIRIM REPORT",
+            metadata,
+            data: mapData(
+              capturedData.filter(
+                (item) =>
+                  !missingData.some((dup) => dup.serial === item.serial) &&
+                  !manualRejectEntries.some((dup) => dup.serialNumber === item.serial),
+              ),
+            ),
           },
           { title: "MANUAL REJECT REPORT", metadata, data: mapData(manualRejectEntries) },
           { title: "MISSING REPORT", metadata, data: mapData(missingData) },
           { title: "DUPLICATE REPORT", metadata, data: mapData(duplicatedData) },
-          { title: "UNUSED SERIALS REPORT", metadata: ["SIRIM SERIAL NO."], data: remainingSerials.map((item: any) => [item]) }
-        ];
-        break;
+          {
+            title: "UNUSED SERIALS REPORT",
+            metadata: ["SIRIM SERIAL NO."],
+            data: remainingSerials.map((item: any) => [item]),
+          },
+        ]
+        break
 
       default:
-        console.error("Invalid section");
-        return;
+        console.error("Invalid section")
+        return
     }
 
     // Save all the sections to Excel
     try {
-      window.excel.save_to_excel(sheets);
+      window.excel.save_to_excel(sheets)
     } catch (error) {
-      console.error("Failed to save to Excel:", error);
+      console.error("Failed to save to Excel:", error)
     }
-  };
-
+  }
 
   useEffect(() => {
-    if (productionStatus !== "RUNNING") return;
-
+    if (productionStatus !== "RUNNING") return
+    console.log(productionStatus)
     const handleTcpData = (data: any) => {
-      let [serial, url, status] = data.split(',').map((data: string) => data.trim());
-      console.log("Received Data:", data);
+      let [serial, url, status] = data.split(",").map((data: string) => data.trim())
+      console.log("Received Data:", data)
 
-      if (!status) return; // Ignore invalid data
-      if (productionStatus !== "RUNNING") return;
+      if (!status) return // Ignore invalid data
+      if (productionStatus !== "RUNNING") return
 
       setCapturedData((prevData) => {
         if (prevData.length > 0) {
-          const lastEntry = prevData[prevData.length - 1];
-          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/);
+          const lastEntry = prevData[prevData.length - 1]
+          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
 
           if (match) {
-            const prefix = match[1];
-            const lastSerialNum = parseInt(match[2], 10);
-            const numLength = match[2].length;
+            const prefix = match[1]
+            const lastSerialNum = Number.parseInt(match[2], 10)
+            const numLength = match[2].length
 
-            const currentMatch = serial.match(/^([A-Za-z]+)(\d+)$/);
+            const currentMatch = serial.match(/^([A-Za-z]+)(\d+)$/)
             if (currentMatch) {
-              const currentSerialNum = parseInt(currentMatch[2], 10);
+              const currentSerialNum = Number.parseInt(currentMatch[2], 10)
               if (currentSerialNum > lastSerialNum + 1) {
                 for (let i = lastSerialNum + 1; i < currentSerialNum; i++) {
-                  const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`;
-                  setMissingData((prevMissing) => [...prevMissing, { serial: skippedSerial, url: lastEntry.url, status: "MISSING" }]);
+                  const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`
+                  setMissingData((prevMissing) => [
+                    ...prevMissing,
+                    { serial: skippedSerial, url: lastEntry.url, status: "MISSING" },
+                  ])
                 }
               }
             }
           }
         }
-        return prevData;
-      });
+        return prevData
+      })
 
       if (!serial || !url) {
         setCapturedData((prevData) => {
-          if (prevData.length === 0) return prevData;
+          if (prevData.length === 0) return prevData
 
-          const lastEntry = prevData[prevData.length - 1];
-          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/);
-          if (!match) return prevData;
+          const lastEntry = prevData[prevData.length - 1]
+          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
+          if (!match) return prevData
 
-          const prefix = match[1];
-          const lastSerialNum = parseInt(match[2], 10);
-          const numLength = match[2].length;
+          const prefix = match[1]
+          const lastSerialNum = Number.parseInt(match[2], 10)
+          const numLength = match[2].length
 
-          const newSerialNum = lastSerialNum + 1;
-          serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`;
+          const newSerialNum = lastSerialNum + 1
+          serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`
 
-          url = lastEntry.url;
-          const newEntry = { serial, url, status };
+          url = lastEntry.url
+          const newEntry = { serial, url, status }
 
-          setMissingData((prevMissing) => [...prevMissing, newEntry]);
-          return [...prevData, newEntry];
-        });
-        return;
+          setMissingData((prevMissing) => [...prevMissing, newEntry])
+          return [...prevData, newEntry]
+        })
+        return
       }
 
-      const serialNum = parseInt(serial.replace(/\D/g, ""), 10);
+      const serialNum = Number.parseInt(serial.replace(/\D/g, ""), 10)
       const isValidSerial = labelRolls.some(({ startNumber, endNumber }) => {
-        const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/);
-        const endMatch = endNumber.match(/^([A-Za-z]+)(\d+)$/);
-        if (!startMatch || !endMatch) return false;
+        const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/)
+        const endMatch = endNumber.match(/^([A-Za-z]+)(\d+)$/)
+        if (!startMatch || !endMatch) return false
 
-        const startPrefix = startMatch[1];
-        const endPrefix = endMatch[1];
-        if (startPrefix !== endPrefix) return false;
+        const startPrefix = startMatch[1]
+        const endPrefix = endMatch[1]
+        if (startPrefix !== endPrefix) return false
 
-        const start = parseInt(startMatch[2], 10);
-        const end = parseInt(endMatch[2], 10);
+        const start = Number.parseInt(startMatch[2], 10)
+        const end = Number.parseInt(endMatch[2], 10)
 
-        return serial.startsWith(startPrefix) && serialNum >= start && serialNum <= end;
-      });
+        return serial.startsWith(startPrefix) && serialNum >= start && serialNum <= end
+      })
 
-      if (!isValidSerial) return;
+      if (!isValidSerial) return
 
       setCapturedData((prevData) => {
-        const alreadyCaptured = prevData.some(entry => entry.serial === serial);
+        const alreadyCaptured = prevData.some((entry) => entry.serial === serial)
 
         if (alreadyCaptured) {
           setDuplicatedData((prevDuplicates) => {
-            if (!prevDuplicates.some(dup => dup.serial === serial)) {
-              return [...prevDuplicates, { serial, url, status }];
+            if (!prevDuplicates.some((dup) => dup.serial === serial)) {
+              return [...prevDuplicates, { serial, url, status }]
             }
-            return prevDuplicates;
-          });
+            return prevDuplicates
+          })
 
           window.serial.serial_com_send("@0101\r")
-          return prevData;
+          return prevData
         }
 
-        if (manualRejectEntries.some(entry => entry.serialNumber === serial)) {
-          return prevData;
+        if (manualRejectEntries.some((entry) => entry.serialNumber === serial)) {
+          return prevData
         }
 
-        return [...prevData, { serial, url, status }];
-      });
-    };
+        return [...prevData, { serial, url, status }]
+      })
+    }
 
-    window.tcpConnection.tcp_received(handleTcpData);
+    window.tcpConnection.tcp_received(handleTcpData)
 
     return () => {
-      window.tcpConnection.tcp_received(null);
-    };
-  }, [productionStatus]);
+      window.tcpConnection.tcp_received(null)
+    }
+  }, [productionStatus])
 
   // Generate list of all possible serials
   const totalSerials = labelRolls.flatMap(({ startNumber, endNumber }) => {
-    const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/);
-    const endMatch = endNumber.match(/^([A-Za-z]+)(\d+)$/);
+    const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/)
+    const endMatch = endNumber.match(/^([A-Za-z]+)(\d+)$/)
 
-    if (!startMatch || !endMatch) return []; // Skip if format is invalid
+    if (!startMatch || !endMatch) return [] // Skip if format is invalid
 
-    const prefix = startMatch[1];
-    const numLength = startMatch[2].length;
-    const start = parseInt(startMatch[2], 10);
-    const end = parseInt(endMatch[2], 10);
+    const prefix = startMatch[1]
+    const numLength = startMatch[2].length
+    const start = Number.parseInt(startMatch[2], 10)
+    const end = Number.parseInt(endMatch[2], 10)
 
-    return (isNaN(start) || isNaN(end) || start > end)
+    return isNaN(start) || isNaN(end) || start > end
       ? [] // Ensure valid range
-      : Array.from({ length: end - start + 1 }, (_, i) => `${prefix}${String(start + i).padStart(numLength, "0")}`);
-  });
+      : Array.from({ length: end - start + 1 }, (_, i) => `${prefix}${String(start + i).padStart(numLength, "0")}`)
+  })
 
   // Get only the valid used serials (excluding missing & duplicates)
-  const usedSerials = capturedData.map(({ serial }) => serial);
+  const usedSerials = capturedData.map(({ serial }) => serial)
 
   // Calculate remaining serials
-  const remainingSerials = totalSerials.filter(serial => !usedSerials.includes(serial));
+  const remainingSerials = totalSerials.filter((serial) => !usedSerials.includes(serial))
 
-  console.log("Used Serials:", usedSerials);
-  console.log("Remaining Serials:", remainingSerials);
+  console.log("Used Serials:", usedSerials)
+  console.log("Remaining Serials:", remainingSerials)
 
   return (
     <div className="flex h-full flex-col p-4 overflow-y-auto scrollbar w-full">
@@ -577,7 +601,32 @@ export default function ProductionPage() {
                               disabled={productionStatus === "RUNNING"}
                               onChange={(e) => {
                                 setBatchNo(e.target.value)
-                                if (batches.find((batch: any) => batch.batch_no === e.target.value)) {
+                                // if (batches.find((batch: any) => batch.batch_no === e.target.value)) {
+                                //   setBatchError(true)
+                                // } else {
+                                //   setBatchError(false)
+                                // }
+                              }}
+                              className={`col-span-3 ${batchError ? "border-red-500" : ""}`}
+                              placeholder="Enter batch number"
+                            />
+                            {/* {batchError && (
+                              <div className="text-right text-xs col-span-4 text-red-500">
+                                {"Batch number already exists"}
+                              </div>
+                            )} */}
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="shiftNo" className="text-right">
+                              Shift No.
+                            </Label>
+                            <Input
+                              id="shiftNo"
+                              value={shiftNo}
+                              disabled={productionStatus === "RUNNING"}
+                              onChange={(e) => {
+                                setShiftNo(e.target.value)
+                                if (batches.find((batch: any) => batch.shift_number === e.target.value && batch.batch_no === batchNo)) {
                                   setBatchError(true)
                                 } else {
                                   setBatchError(false)
@@ -586,21 +635,25 @@ export default function ProductionPage() {
                               className={`col-span-3 ${batchError ? "border-red-500" : ""}`}
                               placeholder="Enter batch number"
                             />
-                            {
-                              batchError && (
-                                <div className="text-right text-xs col-span-4 text-red-500">{"Batch number already exists"}</div>
-                              )
-                            }
+                            {batchError && (
+                              <div className="text-right text-xs col-span-4 text-red-500">
+                                {"Shift number already exists"}
+                              </div>
+                            )}
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="product" className="text-right">
                               Product
                             </Label>
                             <div className="col-span-3">
-                              <Select disabled={productionStatus === "RUNNING"} value={selectedProduct} onValueChange={(value) => {
-                                setSelectedProduct(value)
-                                setProductData(products.find((product: any) => product.id.toString() === value) || {})
-                              }}>
+                              <Select
+                                disabled={productionStatus === "RUNNING"}
+                                value={selectedProduct}
+                                onValueChange={(value) => {
+                                  setSelectedProduct(value)
+                                  setProductData(products.find((product: any) => product.id.toString() === value) || {})
+                                }}
+                              >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select a product" />
                                 </SelectTrigger>
@@ -624,7 +677,13 @@ export default function ProductionPage() {
                           <div className="mt-4">
                             <div className="flex justify-between items-center mb-2">
                               <Label>Label Rolls</Label>
-                              <Button type="button" variant="outline" size="sm" disabled={productionStatus === "RUNNING"} onClick={addLabelRoll}>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={productionStatus === "RUNNING"}
+                                onClick={addLabelRoll}
+                              >
                                 <Plus className="h-4 w-4 mr-1" /> Add Roll
                               </Button>
                             </div>
@@ -674,11 +733,19 @@ export default function ProductionPage() {
 
                           <div className="grid grid-cols-4 items-center gap-4 mt-4">
                             <Label className="text-right font-semibold">Estimated Total Labels:</Label>
-                            <div className="col-span-3 font-bold text-lg">{calculateTotalLabels().toLocaleString()}</div>
+                            <div className="col-span-3 font-bold text-lg">
+                              {calculateTotalLabels().toLocaleString()}
+                            </div>
                           </div>
                         </div>
                         <div className="flex justify-end">
-                          <Button type="button" onClick={saveProduction} disabled={productionStatus === "RUNNING" || labelRolls.some((roll) => !roll.verified) || batchError}>
+                          <Button
+                            type="button"
+                            onClick={saveProduction}
+                            disabled={
+                              productionStatus === "RUNNING" || labelRolls.some((roll) => !roll.verified) || batchError
+                            }
+                          >
                             Save Production Batch
                           </Button>
                         </div>
@@ -687,15 +754,29 @@ export default function ProductionPage() {
                     <Button
                       size="lg"
                       className="bg-green-700 hover:bg-green-600"
-                      disabled={!savedProduction || productionStatus === "RUNNING"}
+                      disabled={!savedProduction || productionStatus === "RUNNING" || productionStatus === "HOLD"}
                       onClick={startProduction}
                     >
                       Start Production
                     </Button>
+                    {productionStatus === "HOLD" ? (
+                      <Button size="lg" className="bg-amber-600 hover:bg-amber-500" onClick={resumeProduction}>
+                        Resume Production
+                      </Button>
+                    ) : (
+                      <Button
+                        size="lg"
+                        className="bg-amber-600 hover:bg-amber-500"
+                        disabled={productionStatus !== "RUNNING"}
+                        onClick={holdProduction}
+                      >
+                        Hold Production
+                      </Button>
+                    )}
                     <Button
                       size="lg"
                       className="bg-slate-700 hover:bg-slate-600"
-                      disabled={productionStatus !== "RUNNING"}
+                      disabled={productionStatus !== "RUNNING" && productionStatus !== "HOLD"}
                       onClick={stopProduction}
                     >
                       Stop Production
@@ -704,7 +785,7 @@ export default function ProductionPage() {
                       size="lg"
                       className="bg-slate-700 hover:bg-slate-600"
                       disabled={productionStatus === "RUNNING"}
-                      onClick={() => handleDownload('all')}
+                      onClick={() => handleDownload("all")}
                     >
                       Download Reports
                     </Button>
@@ -714,7 +795,9 @@ export default function ProductionPage() {
                       ? "text-green-500"
                       : productionStatus === "STOPPED"
                         ? "text-red-500"
-                        : "text-gray-500"
+                        : productionStatus === "HOLD"
+                          ? "text-amber-500"
+                          : "text-gray-500"
                       }`}
                   >
                     Status: {productionStatus}
@@ -872,7 +955,9 @@ export default function ProductionPage() {
                         <DialogContent className="sm:max-w-[425px]">
                           <DialogHeader>
                             <DialogTitle>Add Manual Reject Entries</DialogTitle>
-                            <DialogDescription>Enter the serial numbers for the manual reject entries.</DialogDescription>
+                            <DialogDescription>
+                              Enter the serial numbers for the manual reject entries.
+                            </DialogDescription>
                           </DialogHeader>
                           <div className="grid gap-4 py-4">
                             {newSerialNumbers.map((serialNumber, index) => (

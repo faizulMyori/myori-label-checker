@@ -37,6 +37,14 @@ export default function Index() {
       )
     },
     {
+      key: 'shift_number',
+      label: 'Shift No.',
+      hidden: false,
+      render: (item: any) => (
+        item.shift_number
+      )
+    },
+    {
       key: 'serial_no',
       label: 'Serial No.',
       hidden: false,

@@ -15,7 +15,7 @@ export type UserContextType = {
   route: string;
   setRoute: React.Dispatch<React.SetStateAction<string>>;
   prodStatus: "started" | "stopped";
-  setProdStatus: React.Dispatch<React.SetStateAction<"started" | "stopped">>;
+  setProdStatus: React.Dispatch<React.SetStateAction<"started" | "stopped" | "hold">>;
 };
 
 export const UserContext = React.createContext<UserContextType | null>(null);

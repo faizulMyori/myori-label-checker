@@ -188,8 +188,8 @@ export function addDBEventListeners() {
   // batches
   ipcMain.handle(DB_CREATE_BATCH, async (event, data) => {
     try {
-      let create = await executeQuery("INSERT INTO batches (batch_no, product_id, date) VALUES (?, ?, ?)", [data.batch_no, data.product_id, data.date]);
-      if (create) return await fetchOne("SELECT * FROM batches WHERE batch_no = ?", [data.batch_no]);
+      let create = await executeQuery("INSERT INTO batches (batch_no, shift_number, product_id, date) VALUES (?, ?, ?, ?)", [data.batch_no, data.shift_number, data.product_id, data.date]);
+      if (create) return await fetchOne("SELECT * FROM batches WHERE shift_number = ?", [data.shift_number]);
     } catch (error) {
       return false;
     }
@@ -205,7 +205,7 @@ export function addDBEventListeners() {
 
   ipcMain.handle(DB_SEARCH_BATCHS, async (event, data) => {
     try {
-      return await fetchAll("SELECT * FROM batches WHERE batch_no LIKE ? ", [`%${data}%`]);
+      return await fetchAll("SELECT * FROM batches WHERE batch_no LIKE ? OR shift_number LIKE ? ", [`%${data}%`, `%${data}%`]);
     } catch (error) {
       return false;
     }
