@@ -59,7 +59,7 @@ export default function ProductionDialog() {
             <Label htmlFor="productionDate" className="text-right">
               Production Date
             </Label>
-            <Input id="productionDate" value={today} readOnly className="col-span-3 bg-muted" />
+            <Input id="productionDate" value={new Date().toISOString().split("T")[0]} readOnly className="col-span-3 bg-muted" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="batchNo" className="text-right">
