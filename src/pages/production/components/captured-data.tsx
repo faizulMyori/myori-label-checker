@@ -23,9 +23,12 @@ export default function CapturedData() {
       <CardContent className="h-[200px] overflow-y-auto">
         {[...capturedData].reverse().map((item: any, index: number) => (
           <div key={index} className="text-sm">
-            {item.status === "OK" && `${item.serial}, ${item.url}, ${item.status}`}
+            {`${item.serial}, ${item.url}, ${item.status}`}
           </div>
         ))}
+        {capturedData.length === 0 && (
+          <div className="text-center text-muted-foreground py-8">No captured serial numbers</div>
+        )}
       </CardContent>
     </Card>
   )

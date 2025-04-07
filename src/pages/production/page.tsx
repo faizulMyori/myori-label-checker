@@ -159,100 +159,76 @@ export default function ProductionPage() {
       if (!status) return // Ignore invalid data
       if (productionStatus !== "RUNNING") return
 
-      setCapturedData((prevData) => {
-        if (prevData.length > 0) {
-          const lastEntry = prevData[prevData.length - 1]
-          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
+      // Handle missing serials detection
+      if (capturedData.length > 0) {
+        const lastEntry = capturedData[capturedData.length - 1]
+        const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
 
-          if (match) {
-            const prefix = match[1]
-            const lastSerialNum = Number.parseInt(match[2], 10)
-            const numLength = match[2].length
+        if (match && serial) {
+          const prefix = match[1]
+          const lastSerialNum = Number.parseInt(match[2], 10)
+          const numLength = match[2].length
 
-            const currentMatch = serial.match(/^([A-Za-z]+)(\d+)$/)
-            if (currentMatch) {
-              const currentSerialNum = Number.parseInt(currentMatch[2], 10)
-              if (currentSerialNum > lastSerialNum + 1) {
-                for (let i = lastSerialNum + 1; i < currentSerialNum; i++) {
-                  const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`
-                  setMissingData((prevMissing) => {
-                    // Add to missing data
-                    const newMissing = [
-                      ...prevMissing,
-                      { serial: skippedSerial, url: lastEntry.url, status: "MISSING" },
-                    ]
-                    // Remove from unused serials
-                    removeFromUnusedSerials(skippedSerial)
-                    return newMissing
-                  })
-                }
+          const currentMatch = serial.match(/^([A-Za-z]+)(\d+)$/)
+          if (currentMatch) {
+            const currentSerialNum = Number.parseInt(currentMatch[2], 10)
+            if (currentSerialNum > lastSerialNum + 1) {
+              for (let i = lastSerialNum + 1; i < currentSerialNum; i++) {
+                const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`
+                setMissingData((prevMissing) => {
+                  // Add to missing data
+                  const newMissing = [...prevMissing, { serial: skippedSerial, url: lastEntry.url, status: "MISSING" }]
+                  // Remove from unused serials
+                  removeFromUnusedSerials(skippedSerial)
+                  return newMissing
+                })
               }
             }
           }
         }
-        return prevData
-      })
+      }
 
+      // Handle case where serial or url is missing
       if (!serial || !url) {
-        setCapturedData((prevData) => {
-          if (prevData.length === 0) return prevData
+        if (capturedData.length === 0) return
 
-          const lastEntry = prevData[prevData.length - 1]
-          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
-          if (!match) return prevData
+        const lastEntry = capturedData[capturedData.length - 1]
+        const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
+        if (!match) return
 
-          const prefix = match[1]
-          const lastSerialNum = Number.parseInt(match[2], 10)
-          const numLength = match[2].length
+        const prefix = match[1]
+        const lastSerialNum = Number.parseInt(match[2], 10)
+        const numLength = match[2].length
 
-          const newSerialNum = lastSerialNum + 1
-          serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`
+        const newSerialNum = lastSerialNum + 1
+        serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`
 
-          url = lastEntry.url
-          const newEntry = { serial, url, status }
+        url = lastEntry.url
+        const newEntry = { serial, url, status }
 
-          setMissingData((prevMissing) => {
-            // Add to missing data
-            const newMissing = [...prevMissing, newEntry]
-            // Remove from unused serials
-            removeFromUnusedSerials(serial)
-            return newMissing
-          })
-          return [...prevData, newEntry]
+        setMissingData((prevMissing) => {
+          // Add to missing data
+          const newMissing = [...prevMissing, newEntry]
+          // Remove from unused serials
+          removeFromUnusedSerials(serial)
+          return newMissing
         })
         return
       }
 
-      if (serial && url && status === "NG") {
-        setCapturedData((prevData) => {
-          if (prevData.length === 0) return prevData
-
-          const lastEntry = prevData[prevData.length - 1]
-          const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
-          if (!match) return prevData
-
-          const prefix = match[1]
-          const lastSerialNum = Number.parseInt(match[2], 10)
-          const numLength = match[2].length
-
-          const newSerialNum = lastSerialNum + 1
-          serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`
-
-          url = lastEntry.url
-          const newEntry = { serial, url, status }
-
-          setMissingData((prevMissing) => {
-            // Add to missing data
-            const newMissing = [...prevMissing, newEntry]
-            // Remove from unused serials
-            removeFromUnusedSerials(serial)
-            return newMissing
-          })
-          return [...prevData, newEntry]
+      // Handle NG status - add to missing data, not captured data
+      if (status === "NG") {
+        setMissingData((prevMissing) => {
+          // Add to missing data
+          const newMissing = [...prevMissing, { serial, url, status }]
+          // Remove from unused serials
+          removeFromUnusedSerials(serial)
+          return newMissing
         })
         return
       }
 
+      // Validate serial number
       const serialNum = Number.parseInt(serial.replace(/\D/g, ""), 10)
       const isValidSerial = labelRolls.some(({ startNumber, endNumber }) => {
         if (!startNumber || !endNumber) return false
@@ -273,33 +249,37 @@ export default function ProductionPage() {
 
       if (!isValidSerial) return
 
-      setCapturedData((prevData) => {
-        const alreadyCaptured = prevData.some((entry) => entry.serial === serial)
+      // Check if serial is already captured (duplicate)
+      const alreadyCaptured = capturedData.some((entry) => entry.serial === serial)
 
-        if (alreadyCaptured) {
-          setDuplicatedData((prevDuplicates) => {
-            if (!prevDuplicates.some((dup) => dup.serial === serial)) {
-              // Add to duplicated data
-              const newDuplicates = [...prevDuplicates, { serial, url, status }]
-              // Remove from unused serials
-              removeFromUnusedSerials(serial)
-              return newDuplicates
-            }
-            return prevDuplicates
-          })
+      if (alreadyCaptured) {
+        // Add to duplicated data, not captured data
+        setDuplicatedData((prevDuplicates) => {
+          if (!prevDuplicates.some((dup) => dup.serial === serial)) {
+            // Add to duplicated data
+            const newDuplicates = [...prevDuplicates, { serial, url, status }]
+            // Remove from unused serials
+            removeFromUnusedSerials(serial)
+            return newDuplicates
+          }
+          return prevDuplicates
+        })
 
-          window.serial.serial_com_send("@0101\r")
-          return prevData
-        }
+        window.serial.serial_com_send("@0101\r")
+        return
+      }
 
-        if (manualRejectEntries.some((entry) => entry.serialNumber === serial)) {
-          return prevData
-        }
+      // Check if in manual reject entries
+      if (manualRejectEntries.some((entry) => entry.serialNumber === serial)) {
+        return
+      }
 
+      // Only add to captured data if status is OK and not a duplicate
+      if (status === "OK" && !alreadyCaptured) {
         // Remove from unused serials when captured
         removeFromUnusedSerials(serial)
-        return [...prevData, { serial, url, status }]
-      })
+        setCapturedData((prevData) => [...prevData, { serial, url, status }])
+      }
     }
 
     window.tcpConnection.tcp_received(handleTcpData)
@@ -307,7 +287,7 @@ export default function ProductionPage() {
     return () => {
       window.tcpConnection.tcp_received(undefined) // Properly remove listener
     }
-  }, [productionStatus, labelRolls, manualRejectEntries])
+  }, [productionStatus, labelRolls, manualRejectEntries, capturedData])
 
   // Handle removing a missing data entry
   const handleRemoveMissingEntry = (serial: string) => {
