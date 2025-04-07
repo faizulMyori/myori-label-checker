@@ -69,6 +69,16 @@ export function useProductionSetup(labelRolls: LabelRoll[], calculateTotalLabels
       product: selectedProduct,
       labelRolls,
     }
+
+    setProductData({
+      id: selectedProduct,
+      sku: products.find((p: any) => p.id.toString() === selectedProduct)?.sku,
+      brand: products.find((p: any) => p.id.toString() === selectedProduct)?.brand,
+      model: products.find((p: any) => p.id.toString() === selectedProduct)?.model,
+      type: products.find((p: any) => p.id.toString() === selectedProduct)?.type,
+      rating: products.find((p: any) => p.id.toString() === selectedProduct)?.rating,
+      size: products.find((p: any) => p.id.toString() === selectedProduct)?.size,
+    })
     setSavedProduction(productData)
     window.sqlite
       .create_batch({

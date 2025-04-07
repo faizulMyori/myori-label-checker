@@ -26,7 +26,9 @@ export default function ProductionDialog() {
     setBatchNo,
     shiftNo,
     setShiftNo,
+    batches,
     batchError,
+    setBatchError,
     selectedProduct,
     setSelectedProduct,
     products,
@@ -80,7 +82,14 @@ export default function ProductionDialog() {
               id="shiftNo"
               value={shiftNo}
               disabled={productionStatus === "RUNNING"}
-              onChange={(e) => setShiftNo(e.target.value)}
+              onChange={(e) => {
+                setShiftNo(e.target.value)
+                if (batches.find((batch: any) => batch.shift_number === e.target.value && batch.batch_no === batchNo)) {
+                  setBatchError(true)
+                } else {
+                  setBatchError(false)
+                }
+              }}
               className={`col-span-3 ${batchError ? "border-red-500" : ""}`}
               placeholder="Enter shift number"
             />

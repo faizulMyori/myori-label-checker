@@ -7,7 +7,7 @@ export function useReportDownload(
   manualRejectEntries: any[],
   batchNo: string,
   productData: any,
-  remainingSerials: string[],
+  unusedSerials: string[] = [],
 ) {
   const handleDownload = (section: string) => {
     // Common metadata for most sections
@@ -40,6 +40,7 @@ export function useReportDownload(
             item.status !== "NG",
         )
         title = "SIRIM REPORT"
+        console.log(productData)
         sheets.push({ title, metadata, data: mapData(data) })
         break
 
@@ -63,7 +64,7 @@ export function useReportDownload(
 
       case "unused-serials":
         metadata.splice(1) // Only "SIRIM SERIAL NO."
-        data = remainingSerials.map((item: any) => [item])
+        data = (unusedSerials || []).map((item: string) => [item])
         title = "UNUSED SERIALS REPORT"
         sheets.push({ title, metadata, data })
         break
@@ -88,7 +89,7 @@ export function useReportDownload(
           {
             title: "UNUSED SERIALS REPORT",
             metadata: ["SIRIM SERIAL NO."],
-            data: remainingSerials.map((item: any) => [item]),
+            data: (unusedSerials || []).map((item: string) => [item]),
           },
         ]
         break

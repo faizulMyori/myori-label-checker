@@ -17,13 +17,14 @@ import { useProductionSetup } from "./hooks/use-production-setup"
 import { useReportDownload } from "./hooks/use-report-download"
 import { ProductionProvider } from "./context/production-context"
 import { Toaster } from "sonner"
+import { toast } from "sonner"
 import React from "react"
 
 export default function ProductionPage() {
   const { prodStatus, setProdStatus, conn }: any = useContext(UserContext)
 
   // Initialize all the hooks and state
-  const { productionStatus, setProductionStatus, startProduction, holdProduction, resumeProduction, stopProduction } =
+  const { productionStatus, setProductionStatus, startProduction, holdProduction, resumeProduction } =
     useProductionState(setProdStatus, conn)
 
   const { labelRolls, addLabelRoll, updateLabelRoll, verifyLabelRoll, calculateTotalLabels } = useLabelRolls()
@@ -80,6 +81,38 @@ export default function ProductionPage() {
     productData,
     unusedSerials,
   )
+
+  // Stop production and save data to database
+  const stopProduction = () => {
+    setProdStatus("stopped")
+    setProductionStatus("STOPPED")
+
+    if (labelRolls.length > 0 && capturedData.length > 0) {
+      toast.info("Saving data to database...", { duration: 3000 })
+
+      // Save all captured data to the database
+      const savePromises = capturedData.map((item: any) => {
+        return window.sqlite.create_label({
+          batch_id: batchID,
+          serial: item.serial,
+          qr_code: item.url,
+          status: item.status,
+        })
+      })
+
+      Promise.all(savePromises)
+        .then(() => {
+          toast.success("All data saved successfully", { duration: 3000 })
+          console.log("All captured data saved to database")
+        })
+        .catch((error) => {
+          toast.error("Error saving data to database", { duration: 3000 })
+          console.error("Error saving data:", error)
+        })
+    } else {
+      console.log("No data to save or no label rolls defined")
+    }
+  }
 
   // Generate all possible serials from label rolls
   const generateAllSerials = () => {
