@@ -193,57 +193,57 @@ export default function ProductionPage() {
       if (productionStatus !== "RUNNING") return
 
       // Handle missing serials detection
-      if (capturedData.length > 0) {
-        const lastEntry = capturedData[capturedData.length - 1]
-        const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
+      // if (capturedData.length > 0) {
+      //   const lastEntry = capturedData[capturedData.length - 1]
+      //   const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
 
-        if (match && serial) {
-          const prefix = match[1]
-          const lastSerialNum = Number.parseInt(match[2], 10)
-          const numLength = match[2].length
+      //   if (match && serial) {
+      //     const prefix = match[1]
+      //     const lastSerialNum = Number.parseInt(match[2], 10)
+      //     const numLength = match[2].length
 
-          const currentMatch = serial.match(/^([A-Za-z]+)(\d+)$/)
-          if (currentMatch) {
-            const currentSerialNum = Number.parseInt(currentMatch[2], 10)
-            if (currentSerialNum > lastSerialNum + 1) {
-              for (let i = lastSerialNum + 1; i < currentSerialNum; i++) {
-                const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`
-                setMissingData((prevMissing) => {
-                  // Add to missing data
-                  const newMissing = [...prevMissing, { serial: skippedSerial, url: lastEntry.url, status: "MISSING" }]
-                  // Remove from unused serials
-                  removeFromUnusedSerials(skippedSerial)
-                  return newMissing
-                })
-              }
-            }
-          }
-        }
-      }
+      //     const currentMatch = serial.match(/^([A-Za-z]+)(\d+)$/)
+      //     if (currentMatch) {
+      //       const currentSerialNum = Number.parseInt(currentMatch[2], 10)
+      //       if (currentSerialNum > lastSerialNum + 1) {
+      //         for (let i = lastSerialNum + 1; i < currentSerialNum; i++) {
+      //           const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`
+      //           setMissingData((prevMissing) => {
+      //             // Add to missing data
+      //             const newMissing = [...prevMissing, { serial: skippedSerial, url: lastEntry.url, status: "MISSING" }]
+      //             // Remove from unused serials
+      //             removeFromUnusedSerials(skippedSerial)
+      //             return newMissing
+      //           })
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
 
       // Handle case where serial or url is missing
       if (!serial || !url) {
         if (capturedData.length === 0) return
 
-        const lastEntry = capturedData[capturedData.length - 1]
-        const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
-        if (!match) return
+        // const lastEntry = capturedData[capturedData.length - 1]
+        // const match = lastEntry.serial.match(/^([A-Za-z]+)(\d+)$/)
+        // if (!match) return
 
-        const prefix = match[1]
-        const lastSerialNum = Number.parseInt(match[2], 10)
-        const numLength = match[2].length
+        // const prefix = match[1]
+        // const lastSerialNum = Number.parseInt(match[2], 10)
+        // const numLength = match[2].length
 
-        const newSerialNum = lastSerialNum + 1
-        serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`
+        // const newSerialNum = lastSerialNum + 1
+        // serial = `${prefix}${String(newSerialNum).padStart(numLength, "0")}`
 
-        url = lastEntry.url
-        const newEntry = { serial, url, status }
+        // url = lastEntry.url
+        const newEntry = { serial: '', url: '', status }
 
         setMissingData((prevMissing) => {
           // Add to missing data
           const newMissing = [...prevMissing, newEntry]
           // Remove from unused serials
-          removeFromUnusedSerials(serial)
+          // removeFromUnusedSerials(serial)
           return newMissing
         })
         return
@@ -255,7 +255,7 @@ export default function ProductionPage() {
           // Add to missing data
           const newMissing = [...prevMissing, { serial, url, status }]
           // Remove from unused serials
-          removeFromUnusedSerials(serial)
+          // removeFromUnusedSerials(serial)
           return newMissing
         })
         return
