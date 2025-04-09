@@ -49,7 +49,10 @@ export function useReportDownload(
     // For different sections, get the relevant data
     switch (section) {
       case "captured":
-        data = capturedData
+        data = capturedData.filter(
+          (item) =>
+            !manualRejectEntries.some((dup) => dup.serialNumber === item.serial)
+        )
         title = "SIRIM REPORT"
         sheets.push({ title, metadata, data: mapData(data) })
         break
