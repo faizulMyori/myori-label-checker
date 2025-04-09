@@ -51,7 +51,7 @@ export function useReportDownload(
       case "captured":
         data = capturedData.filter(
           (item) =>
-            !manualRejectEntries.some((dup) => dup.serialNumber === item.serial)
+            !manualRejectEntries.some((rej) => rej.serialNumber === item.serial)
         )
         title = "SIRIM REPORT"
         sheets.push({ title, metadata, data: mapData(data) })
