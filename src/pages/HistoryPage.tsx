@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react'
-import TableWithPagination from '@/components/TableWithPagination'
-import Footer from '@/components/template/Footer'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { FormDialog } from '@/components/FormDialog'
-import { ConfirmDialog } from '@/components/ConfirmDialog'
-import { set } from 'zod'
-import { Button } from '@/components/ui/button'
+"use client"
+
+import React from "react"
+import { useState, useEffect } from "react"
+import TableWithPagination from "@/components/TableWithPagination"
+import Footer from "@/components/template/Footer"
+import { FormDialog } from "@/components/FormDialog"
+import { ConfirmDialog } from "@/components/ConfirmDialog"
+import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 export default function Index() {
@@ -21,71 +21,84 @@ export default function Index() {
     prev_page_url: null,
   })
 
-  const [savedHistories, setSavedHistories] = useState([]);
+  const [savedHistories, setSavedHistories] = useState([])
 
-  const [formType, setFormType] = useState<'create' | 'update'>('create')
-  const [form, setForm] = useState([]);
-  const [openForm, setOpenForm] = useState(false);
-  const [deleteDialog, setOpenDeleteDialog] = useState(false);
+  const [formType, setFormType] = useState<"create" | "update">("create")
+  const [form, setForm] = useState<any>(null);
+  const [openForm, setOpenForm] = useState(false)
+  const [deleteDialog, setOpenDeleteDialog] = useState(false)
 
   const columns = [
     {
-      key: 'batch_no',
-      label: 'Batch No.',
+      key: "batch_no",
+      label: "Batch No.",
       hidden: false,
-      render: (item: any) => (
-        item.batch_no
-      )
+      render: (item: any) => item.batch_no,
     },
     {
-      key: 'shift_number',
-      label: 'Shift No.',
+      key: "shift_number",
+      label: "Shift No.",
       hidden: false,
-      render: (item: any) => (
-        item.shift_number
-      )
+      render: (item: any) => item.shift_number,
     },
     {
-      key: 'serial_no',
-      label: 'Serial No.',
+      key: "serial_no",
+      label: "Serial No.",
       hidden: false,
       render: (item: any) => (
-        <Button size={'sm'} onClick={() => {
-          setForm(item.labels)
-          setOpenForm(true)
-        }}>Open List</Button>
-      )
+        <Button
+          size={"sm"}
+          onClick={() => {
+            setForm(item.labels)
+            setOpenForm(true)
+          }}
+        >
+          Open List
+        </Button>
+      ),
     },
     {
-      key: 'date',
-      label: 'Date',
+      key: "label_count",
+      label: "Label Count",
       hidden: false,
-      render: (item: any) => (
-        new Date(item.date).toLocaleDateString('en-GB')
-      )
+      render: (item: any) => item.labels.length,
+    },
+    {
+      key: "date",
+      label: "Date",
+      hidden: false,
+      render: (item: any) => new Date(item.date).toLocaleDateString("en-GB"),
     },
   ]
 
-  const actions: never[] = []
+  const actions = [
+    {
+      label: "Delete",
+      onClick: (item: any) => {
+        setForm(item)
+        setOpenDeleteDialog(true)
+      },
+    },
+  ]
 
   const handleSearch = (query: string) => {
     try {
       if (!query) {
         // If query is empty, reset to full data
-        setHistories({ ...histories, data: savedHistories });
-        return;
+        setHistories({ ...histories, data: savedHistories })
+        return
       }
 
       // Always filter from initialData, not the current filtered state
       const filteredData = savedHistories.filter((item: any) =>
-        item.batch_no?.toLowerCase().includes(query.toLowerCase())
-      );
+        item.batch_no?.toLowerCase().includes(query.toLowerCase()),
+      )
 
-      setHistories({ ...histories, data: filteredData });
+      setHistories({ ...histories, data: filteredData })
     } catch (error) {
-      console.error("Search Error:", error);
+      console.error("Search Error:", error)
     }
-  };
+  }
 
   const handlePageChange = (url: string) => {
     // router.get(url, {}, { preserveState: true })
@@ -94,42 +107,57 @@ export default function Index() {
   const handleAdd = (e: React.MouseEvent) => {
     setForm([])
     setOpenForm(true)
-    setFormType('create')
+    setFormType("create")
   }
 
   const handleConfirmDelete = () => {
-    // try {
-    //   window.sqlite.delete_history(form.id).then((d: any) => {
-    //     setOpenDeleteDialog(false)
-    //   })
-    // } catch (error) {
-    //   console.log(error)
-    // }
+    if (form?.labels.length > 0) {
+      return alert("Cannot delete batch with labels")
+    }
+    try {
+      window.sqlite
+        .delete_batch(form.id)
+        .then((d: any) => {
+          setOpenDeleteDialog(false)
+          // Remove the deleted item from the current data
+          fetchHistories()
+        })
+        .catch((error: any) => {
+          console.error("Delete error:", error)
+          // Optionally add error handling UI here
+        })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const fetchHistories = async () => {
+    try {
+      window.sqlite.get_labels().then((labels: any) => {
+        window.sqlite.get_batchs().then((batchs: any) => {
+          window.sqlite.get_products().then((products: any) => {
+            console.log(products, labels, batchs)
+            const data = batchs.map((batch: any) => ({
+              ...batch,
+              labels: labels.filter((label: any) => label.batch_id === batch.id),
+              product: products.find((product: any) => product.id === Number.parseInt(batch.product_id)),
+            }))
+            setHistories({
+              ...histories,
+              data: data,
+            })
+            setSavedHistories(data)
+          })
+        })
+      })
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   useEffect(() => {
     if (!deleteDialog || !openForm) {
-      try {
-        window.sqlite.get_labels().then((labels: any) => {
-          window.sqlite.get_batchs().then((batchs: any) => {
-            window.sqlite.get_products().then((products: any) => {
-              console.log(products, labels, batchs)
-              let data = batchs.map((batch: any) => ({
-                ...batch,
-                labels: labels.filter((label: any) => label.batch_id === batch.id),
-                product: products.find((product: any) => product.id === parseInt(batch.product_id))
-              }))
-              setHistories({
-                ...histories,
-                data: data
-              })
-              setSavedHistories(data)
-            })
-          })
-        })
-      } catch (error) {
-        console.log(error)
-      }
+      fetchHistories()
     }
   }, [openForm, deleteDialog])
 
@@ -180,69 +208,60 @@ export default function Index() {
             onPageChange={handlePageChange}
             onAdd={handleAdd}
             canAdd={false}
-            hideActions={true}
+            hideActions={false}
           />
         </div>
       </div>
       <Footer />
 
-      {
-        deleteDialog && (
-          <ConfirmDialog
-            open={deleteDialog}
-            setConfirm={handleConfirmDelete}
-            title="Confirm to delete?"
-            setOpen={setOpenDeleteDialog}
-          />
-        )
-      }
+      {deleteDialog && (
+        <ConfirmDialog
+          open={deleteDialog}
+          setConfirm={handleConfirmDelete}
+          title="Confirm to delete?"
+          message={`Are you sure you want to delete batch ${form.batch_no}? This action cannot be undone.`}
+          setOpen={setOpenDeleteDialog}
+        />
+      )}
 
-      {
-        openForm && (
-          <FormDialog
-            setOpenForm={setOpenForm}
-            openDialog={openForm}
-            formType='view'
-            setConfirmForm={handleSubmit}
-            title={`Serial No Lists`}
-            forms={<Form data={form} />}
-            processing={false}
-            size='lg:max-w-3xl'
-          />
-        )
-      }
+      {openForm && (
+        <FormDialog
+          setOpenForm={setOpenForm}
+          openDialog={openForm}
+          formType="view"
+          setConfirmForm={handleSubmit}
+          title={`Serial No Lists`}
+          forms={<Form data={form} />}
+          processing={false}
+          size="lg:max-w-3xl"
+        />
+      )}
     </div>
   )
 }
 
 function Form(props: any) {
-  const [data, setData] = useState(props.data);
+  const [data, setData] = useState(props.data)
   const columns = [
     {
-      key: 'serial_no',
-      label: 'Serial No.',
+      key: "serial_no",
+      label: "Serial No.",
       hidden: false,
-      render: (item: any) => (
-        item.serial
-      )
+      render: (item: any) => item.serial,
     },
     {
-      key: 'qr_code',
-      label: 'QR Code',
+      key: "qr_code",
+      label: "QR Code",
       hidden: false,
-      render: (item: any) => (
-        item.qr_code
-      )
+      render: (item: any) => item.qr_code,
     },
     {
-      key: 'status',
-      label: 'Status',
+      key: "status",
+      label: "Status",
       hidden: false,
-      render: (item: any) => (
-        item.status
-      )
+      render: (item: any) => item.status,
     },
-  ];
+  ]
 
   const actions: any[] = []
 
