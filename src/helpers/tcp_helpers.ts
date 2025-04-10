@@ -41,12 +41,14 @@ export async function connectTcp(ip: string, port: number, event: any) {
             reconnectAttempts = 0; // Reset reconnect attempts on success
             event.sender.send(TCP_CONNECTED);
             client?.removeAllListeners(); // Remove all previous listeners
-
+            setInterval(keepAlive, 10000); // Send keep-alive packets every 30 seconds
             // Listen for incoming data
             client?.on('data', (data: Buffer) => {
                 try {
                     const dataString = data.toString().trim();
+                    if (dataString.includes('PING')) return;
                     console.log(`Received: ${dataString}`);
+
                     event.sender.send(TCP_RECEIVE, dataString);
                 } catch (parseError: any) {
                     event.sender.send(TCP_ERROR, parseError.message);
@@ -82,6 +84,12 @@ export async function connectTcp(ip: string, port: number, event: any) {
             attemptReconnect(ip, port, event);
         });
     });
+}
+
+function keepAlive() {
+    if (client && !client.destroyed) {
+        client.write('PING\r\n');
+    }
 }
 
 // Attempt to reconnect with a delay
