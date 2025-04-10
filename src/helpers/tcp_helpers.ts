@@ -46,7 +46,7 @@ export async function connectTcp(ip: string, port: number, event: any) {
             client?.on('data', (data: Buffer) => {
                 try {
                     const dataString = data.toString().trim();
-                    if (dataString.includes('PING')) return;
+                    if (dataString.includes('ER') || dataString.includes('PING')) return;
                     console.log(`Received: ${dataString}`);
 
                     event.sender.send(TCP_RECEIVE, dataString);
