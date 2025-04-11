@@ -111,7 +111,7 @@ interface tcpConnection {
 }
 
 interface excel {
-  save_to_excel: (data: any) => Promise<void>;
+  save_to_excel: (data: any, filePath?: string) => Promise<void>;
 }
 
 interface serial {

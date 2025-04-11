@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { useProduction } from "../context/production-context"
 import ProductionDialog from "./production-dialog"
+import SavePathModal from "./save-path-modal"
 import React from "react"
 
 export default function ProductionControls() {
@@ -14,6 +15,10 @@ export default function ProductionControls() {
     resumeProduction,
     stopProduction,
     handleDownload,
+    isSavePathModalOpen,
+    setIsSavePathModalOpen,
+    savePath,
+    handleConfirmDownload,
     resetProduction,
   } = useProduction()
 
@@ -68,6 +73,12 @@ export default function ProductionControls() {
           Reset Production
         </Button>
       </div>
+      <SavePathModal
+        isOpen={isSavePathModalOpen}
+        onClose={() => setIsSavePathModalOpen(false)}
+        onConfirm={handleConfirmDownload}
+        savePath={savePath}
+      />
       <div
         className={`text-lg font-semibold ${productionStatus === "RUNNING"
           ? "text-green-500"

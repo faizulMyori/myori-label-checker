@@ -74,7 +74,7 @@ export default function ProductionPage() {
     handleDeleteEntry,
   } = useManualReject()
 
-  const { handleDownload } = useReportDownload(
+  const { handleDownload, isSavePathModalOpen, setIsSavePathModalOpen, savePath, handleConfirmDownload } = useReportDownload(
     capturedData,
     missingData,
     duplicatedData,
@@ -435,7 +435,11 @@ export default function ProductionPage() {
     unusedSerials,
     setUnusedSerials,
     removeFromUnusedSerials,
-    addToUnusedSerials
+    addToUnusedSerials,
+    isSavePathModalOpen,
+    setIsSavePathModalOpen,
+    savePath,
+    handleConfirmDownload
   }
 
   return (
