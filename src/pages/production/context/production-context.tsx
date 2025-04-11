@@ -81,6 +81,7 @@ interface ProductionContextType {
   addManualRejectEntries: () => void
   handleDeleteEntry: (id: string) => void
   handleDownload: (type: string) => void
+  handleDeleteCapturedData: (serial: string) => Promise<void>
   resetProduction: () => void
   startProduction: () => void
   holdProduction: () => void

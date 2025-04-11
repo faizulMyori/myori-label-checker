@@ -20,7 +20,7 @@ import { toast } from "sonner"
 import React from "react"
 
 export default function CapturedData() {
-  const { capturedData, handleDownload, labelRolls, batchNo, productData, setCapturedData, unusedSerials, removeFromUnusedSerials, addToUnusedSerials } = useProduction()
+  const { capturedData, handleDownload, labelRolls, batchNo, productData, setCapturedData, unusedSerials, removeFromUnusedSerials, addToUnusedSerials, handleDeleteCapturedData } = useProduction()
   const [isHovering, setIsHovering] = useState(false)
   const [allSerialsData, setAllSerialsData] = useState<any[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -158,18 +158,13 @@ export default function CapturedData() {
     }
   }
 
-  const handleDeleteEntry = (index: number) => {
+  const handleDeleteEntry = async (index: number) => {
     // Since we're using reverse(), we need to calculate the correct index
     const actualIndex = capturedData.length - 1 - index
     const entry = capturedData[actualIndex]
 
-    // Create new array without the entry
-    const newCapturedData = [...capturedData]
-    newCapturedData.splice(actualIndex, 1)
-    setCapturedData(newCapturedData)
-
-    addToUnusedSerials(entry.serial + ":")
-    toast.success("Entry removed and returned to unused serials")
+    // Use the new delete function that handles both state and database
+    await handleDeleteCapturedData(entry.serial)
   }
 
   return (
@@ -212,16 +207,14 @@ export default function CapturedData() {
         {[...capturedData].reverse().map((item: any, index: number) => (
           <div key={index} className="text-sm flex justify-between items-center">
             <span>{`${item.serial}, ${item.url}, ${item.status}`}</span>
-            {item.url.includes(":") && ( // Show delete button only for manual entries
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2"
-                onClick={() => handleDeleteEntry(index)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2"
+              onClick={() => handleDeleteEntry(index)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         ))}
         {capturedData.length === 0 && (

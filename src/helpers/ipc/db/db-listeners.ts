@@ -284,7 +284,10 @@ export function addDBEventListeners() {
 
   ipcMain.handle(DB_DELETE_LABEL, async (event, data) => {
     try {
-      const result = await executeQuery("DELETE FROM labels WHERE id = ?", [data]);
+      // Check if data is a number (ID) or string (serial)
+      const isId = typeof data === 'number';
+      const query = isId ? "DELETE FROM labels WHERE id = ?" : "DELETE FROM labels WHERE serial = ?";
+      const result = await executeQuery(query, [data]);
       return result;
     } catch (error) {
       console.error("Error deleting label:", error);

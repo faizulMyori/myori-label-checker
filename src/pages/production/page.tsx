@@ -84,7 +84,121 @@ export default function ProductionPage() {
     unusedSerials,
   )
 
-  // Stop production and save data to database
+  // Handle TCP data capture
+  useEffect(() => {
+    if (productionStatus !== "RUNNING") {
+      return () => {
+        window.tcpConnection.tcp_received(undefined) // Properly remove listener
+      }
+    }
+
+    const handleTcpData = async (data: any) => {
+      const [serial, url, status] = data.split(",").map((data: string) => data.trim())
+      console.log("Received Data:", data)
+
+      if (productionStatus !== "RUNNING") return
+
+      if (!status) {
+        setMissingData((prevMissing) => [...prevMissing, { serial, url: "", status: "(UNKNOWN)" }])
+        return
+      }
+
+      // Handle case where serial or url is missing
+      if (!serial || !url) {
+        setMissingData((prev) => [...prev, { serial: "", url: "", status }]);
+        return;
+      }
+
+      const newUrl = new Date().toLocaleTimeString()
+
+      if (status === "NG") {
+        setMissingData(prevMissing => [...prevMissing, { serial, url: newUrl, status }]);
+        return;
+      }
+
+      // Validate serial number
+      const serialPrefix = serial.replace(/\d/g, "")
+      const serialNum = Number.parseInt(serial.replace(/\D/g, ""), 10)
+      const isValidSerial = labelRolls.some(({ startNumber, endNumber }: any) => {
+        if (!startNumber || !endNumber) return false
+
+        const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/)
+        const endMatch = endNumber.match(/^([A-Za-z]+)(\d+)$/)
+        if (!startMatch || !endMatch) return false
+
+        const startPrefix = startMatch[1]
+        const endPrefix = endMatch[1]
+        if (startPrefix !== endPrefix || startPrefix !== serialPrefix) return false
+
+        const start = Number.parseInt(startMatch[2], 10)
+        const end = Number.parseInt(endMatch[2], 10)
+
+        return serialNum >= start && serialNum <= end
+      })
+
+      if (!isValidSerial) {
+        const newEntry = { serial, url: newUrl, status: status + " - (INVALID)" }
+
+        setMissingData((prevMissing) => {
+          const newMissing = [...prevMissing, newEntry]
+          return newMissing
+        })
+        return
+      }
+
+      // Check if serial is already captured (duplicate)
+      let alreadyCaptured = false
+
+      alreadyCaptured = capturedData.some((entry) => entry.serial === serial)
+
+      if (alreadyCaptured && checkDuplicates) {
+        // Add to duplicated data, not captured data
+        setDuplicatedData((prevDuplicates) => {
+          if (!prevDuplicates.some((dup) => dup.serial === serial)) {
+            // Add to duplicated data
+            const newDuplicates = [...prevDuplicates, { serial, url: newUrl, status }]
+            return newDuplicates
+          }
+          return prevDuplicates
+        })
+
+        window.serial.serial_com_send("@0101\r")
+        return
+      } else if (alreadyCaptured && !checkDuplicates) {
+        return
+      }
+
+      // Only add to captured data if status is OK and not a duplicate
+      if (status === "OK" && !alreadyCaptured) {
+        // Remove from unused serials when captured
+        removeFromUnusedSerials(serial)
+
+        // Insert into database immediately
+        try {
+          await window.sqlite.create_label({
+            batch_id: batchID,
+            serial: serial,
+            qr_code: newUrl,
+            status: status,
+          })
+          console.log(`Serial ${serial} saved to database`)
+        } catch (error) {
+          console.error(`Error saving serial ${serial} to database:`, error)
+          toast.error(`Error saving serial ${serial} to database`)
+        }
+
+        setCapturedData((prevData) => [...prevData, { serial, url: newUrl, status }])
+      }
+    }
+
+    window.tcpConnection.tcp_received(handleTcpData)
+
+    return () => {
+      window.tcpConnection.tcp_received(undefined) // Properly remove listener
+    }
+  }, [productionStatus, labelRolls, manualRejectEntries, capturedData, checkDuplicates, batchID])
+
+  // Stop production without saving data to database
   const stopProduction = () => {
     // Save captured data to Excel first
     if (capturedData.length > 0) {
@@ -93,32 +207,7 @@ export default function ProductionPage() {
 
     setProdStatus("stopped")
     setProductionStatus("STOPPED")
-
-    if (labelRolls.length > 0 && capturedData.length > 0) {
-      toast.info("Saving data to database...", { duration: 3000 })
-
-      // Save all captured data to the database
-      const savePromises = capturedData.map((item: any) => {
-        return window.sqlite.create_label({
-          batch_id: batchID,
-          serial: item.serial,
-          qr_code: item.url,
-          status: item.status,
-        })
-      })
-
-      Promise.all(savePromises)
-        .then(() => {
-          toast.success("All data saved successfully", { duration: 3000 })
-          console.log("All captured data saved to database")
-        })
-        .catch((error) => {
-          toast.error("Error saving data to database", { duration: 3000 })
-          console.error("Error saving data:", error)
-        })
-    } else {
-      console.log("No data to save or no label rolls defined")
-    }
+    toast.success("Production stopped successfully")
   }
 
   // Generate all possible serials from label rolls
@@ -192,117 +281,32 @@ export default function ProductionPage() {
     })
   }
 
-  // Handle TCP data capture
-  useEffect(() => {
-    if (productionStatus !== "RUNNING") {
-      return () => {
-        window.tcpConnection.tcp_received(undefined) // Properly remove listener
-      }
-    }
-
-    const handleTcpData = (data: any) => {
-      const [serial, url, status] = data.split(",").map((data: string) => data.trim())
-      console.log("Received Data:", data)
-
-      if (productionStatus !== "RUNNING") return
-
-      if (!status) {
-        setMissingData((prevMissing) => [...prevMissing, { serial, url: "", status: "(UNKNOWN)" }])
-        return
-      }
-
-      // Handle case where serial or url is missing
-      if (!serial || !url) {
-        setMissingData((prev) => [...prev, { serial: "", url: "", status }]);
-        return;
-      }
-
-      const newUrl = new Date().toLocaleTimeString()
-
-      if (status === "NG") {
-        setMissingData(prevMissing => [...prevMissing, { serial, url: newUrl, status }]);
-        return;
-      }
-
-      // Validate serial number
-      const serialPrefix = serial.replace(/\d/g, "")
-      const serialNum = Number.parseInt(serial.replace(/\D/g, ""), 10)
-      const isValidSerial = labelRolls.some(({ startNumber, endNumber }: any) => {
-        if (!startNumber || !endNumber) return false
-
-        const startMatch = startNumber.match(/^([A-Za-z]+)(\d+)$/)
-        const endMatch = endNumber.match(/^([A-Za-z]+)(\d+)$/)
-        if (!startMatch || !endMatch) return false
-
-        const startPrefix = startMatch[1]
-        const endPrefix = endMatch[1]
-        if (startPrefix !== endPrefix || startPrefix !== serialPrefix) return false
-
-        const start = Number.parseInt(startMatch[2], 10)
-        const end = Number.parseInt(endMatch[2], 10)
-
-        return serialNum >= start && serialNum <= end
-      })
-
-      if (!isValidSerial) {
-        const newEntry = { serial, url: newUrl, status: status + " - (INVALID)" }
-
-        setMissingData((prevMissing) => {
-          const newMissing = [...prevMissing, newEntry]
-          return newMissing
-        })
-        return
-      }
-
-      // Check if serial is already captured (duplicate)
-      let alreadyCaptured = false
-
-      alreadyCaptured = capturedData.some((entry) => entry.serial === serial)
-
-      if (alreadyCaptured && checkDuplicates) {
-        // Add to duplicated data, not captured data
-        setDuplicatedData((prevDuplicates) => {
-          if (!prevDuplicates.some((dup) => dup.serial === serial)) {
-            // Add to duplicated data
-            const newDuplicates = [...prevDuplicates, { serial, url: newUrl, status }]
-            // // Remove from unused serials
-            // removeFromUnusedSerials(serial)
-            return newDuplicates
-          }
-          return prevDuplicates
-        })
-
-        window.serial.serial_com_send("@0101\r")
-        return
-      } else if (alreadyCaptured && !checkDuplicates) {
-        return
-      }
-
-      // Check if in manual reject entries
-      // if (manualRejectEntries.some((entry) => entry.serialNumber === serial)) {
-      //   return
-      // }
-
-      // Only add to captured data if status is OK and not a duplicate
-      if (status === "OK" && !alreadyCaptured) {
-        // Remove from unused serials when captured
-        removeFromUnusedSerials(serial)
-        setCapturedData((prevData) => [...prevData, { serial, url: newUrl, status }])
-      }
-    }
-
-    window.tcpConnection.tcp_received(handleTcpData)
-
-    return () => {
-      window.tcpConnection.tcp_received(undefined) // Properly remove listener
-    }
-  }, [productionStatus, labelRolls, manualRejectEntries, capturedData, checkDuplicates])
-
   // Handle removing a missing data entry
   const handleRemoveMissingEntry = (i: Number) => {
     setMissingData((prevData) => {
       return prevData.reverse().filter((item, index) => index !== i).reverse()
     })
+  }
+
+  // Handle removing a captured data entry and delete from database
+  const handleDeleteCapturedData = async (serial: string) => {
+    console.log(serial)
+    try {
+      // Delete from database
+      await window.sqlite.delete_label(serial)
+      // Remove from capturedData state
+      setCapturedData((prevData) => {
+        const newData = prevData.filter((item) => item.serial !== serial)
+        console.log(`Removed ${serial} from captured data. Remaining: ${newData.length}`)
+        return newData
+      })
+      // Add back to unused serials
+      addToUnusedSerials(serial)
+      toast.success(`Serial ${serial} deleted successfully`)
+    } catch (error) {
+      console.error(`Error deleting serial ${serial}:`, error)
+      toast.error(`Error deleting serial ${serial}`)
+    }
   }
 
   // Handle removing a duplicated data entry
@@ -410,6 +414,7 @@ export default function ProductionPage() {
     addManualRejectEntries,
     handleDeleteEntry,
     handleDownload,
+    handleDeleteCapturedData,
     resetProduction: () => {
       // Reset all state to initial values
       setSavedProduction(null)
