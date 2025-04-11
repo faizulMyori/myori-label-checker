@@ -73,6 +73,7 @@ interface tcpConnection {
   tcp_connected: (callback: any) => Promise<void>;
   tcp_received: (callback: any) => Promise<void>;
   tcp_send: (data: any) => Promise<void>;
+  set_auto_reconnect: (enabled: boolean) => Promise<void>;
 }
 
 interface excel {

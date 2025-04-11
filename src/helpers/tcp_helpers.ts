@@ -12,6 +12,11 @@ let client: net.Socket | null = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY = 5000; // 5 seconds
+let autoReconnectEnabled = true;
+
+export function setAutoReconnect(enabled: boolean) {
+    autoReconnectEnabled = enabled;
+}
 
 export async function connectTcp(ip: string, port: number, event: any) {
     console.log(`Attempting to connect to ${ip}:${port}`);
@@ -60,10 +65,12 @@ export async function connectTcp(ip: string, port: number, event: any) {
                 console.log('TCP connection closed');
                 event.sender.send(TCP_CLOSED);
                 client = null; // Reset client for reconnection
-                attemptReconnect(ip, port, event);
+                if (autoReconnectEnabled) {
+                    attemptReconnect(ip, port, event);
+                }
                 ipcMain.emit(WIN_DIALOG_INFO, {
                     title: "Error",
-                    message: `Connection Closed! Reconnecting....`,
+                    message: `Connection Closed!${autoReconnectEnabled ? ' Reconnecting....' : ''}`,
                 });
             });
 
@@ -72,7 +79,9 @@ export async function connectTcp(ip: string, port: number, event: any) {
                 console.error(`TCP Connection Error: ${err.message}`);
                 event.sender.send(TCP_ERROR, err.message);
                 client = null; // Reset client for reconnection
-                attemptReconnect(ip, port, event);
+                if (autoReconnectEnabled) {
+                    attemptReconnect(ip, port, event);
+                }
             });
         });
 
@@ -81,7 +90,9 @@ export async function connectTcp(ip: string, port: number, event: any) {
             console.error(`TCP Connection Error: ${err.message}`);
             event.sender.send(TCP_ERROR, err.message);
             client = null; // Reset client for reconnection
-            attemptReconnect(ip, port, event);
+            if (autoReconnectEnabled) {
+                attemptReconnect(ip, port, event);
+            }
         });
     });
 }

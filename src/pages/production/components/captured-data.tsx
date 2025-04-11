@@ -1,6 +1,6 @@
 "use client"
 
-import { Download, FileSpreadsheet } from "lucide-react"
+import { Download, FileSpreadsheet, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useProduction } from "../context/production-context"
@@ -20,12 +20,14 @@ import { toast } from "sonner"
 import React from "react"
 
 export default function CapturedData() {
-  const { capturedData, handleDownload, labelRolls, batchNo, productData } = useProduction()
+  const { capturedData, handleDownload, labelRolls, batchNo, productData, setCapturedData, unusedSerials, removeFromUnusedSerials, addToUnusedSerials } = useProduction()
   const [isHovering, setIsHovering] = useState(false)
   const [allSerialsData, setAllSerialsData] = useState<any[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isManualEntryModalOpen, setIsManualEntryModalOpen] = useState(false)
   const [startSerial, setStartSerial] = useState("")
   const [endSerial, setEndSerial] = useState("")
+  const [manualSerial, setManualSerial] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
 
   // Set initial values when modal opens based on first label roll
@@ -130,6 +132,46 @@ export default function CapturedData() {
     }
   }
 
+  const handleManualEntry = () => {
+    if (!manualSerial) {
+      toast.error("Please enter a serial number")
+      return
+    }
+
+    // Check if serial exists in unused serials
+    if (unusedSerials.includes(manualSerial)) {
+      const newEntry = {
+        serial: manualSerial,
+        url: new Date().toLocaleTimeString(),
+        status: "OK"
+      }
+
+      setCapturedData([...capturedData, newEntry])
+      removeFromUnusedSerials(manualSerial)
+      setManualSerial("")
+      setIsManualEntryModalOpen(false)
+      toast.success("Serial number added successfully")
+    } else {
+      toast.error("Serial number not found in unused serials", {
+        description: "Please verify the serial number is correct and within the label roll range"
+      })
+    }
+  }
+
+  const handleDeleteEntry = (index: number) => {
+    // Since we're using reverse(), we need to calculate the correct index
+    const actualIndex = capturedData.length - 1 - index
+    const entry = capturedData[actualIndex]
+
+    // Create new array without the entry
+    const newCapturedData = [...capturedData]
+    newCapturedData.splice(actualIndex, 1)
+    setCapturedData(newCapturedData)
+
+    addToUnusedSerials(entry.serial + ":")
+    toast.success("Entry removed and returned to unused serials")
+  }
+
   return (
     <Card className="col-span-6">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -138,6 +180,13 @@ export default function CapturedData() {
           <div className="text-2xl font-bold">{capturedData.length}</div>
           <Button variant="ghost" size="sm" onClick={() => handleDownload("captured")}>
             <Download className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsManualEntryModalOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
           </Button>
           <TooltipProvider>
             <Tooltip>
@@ -161,14 +210,53 @@ export default function CapturedData() {
       </CardHeader>
       <CardContent className="h-[200px] overflow-y-auto">
         {[...capturedData].reverse().map((item: any, index: number) => (
-          <div key={index} className="text-sm">
-            {`${item.serial}, ${item.url}, ${item.status}`}
+          <div key={index} className="text-sm flex justify-between items-center">
+            <span>{`${item.serial}, ${item.url}, ${item.status}`}</span>
+            {item.url.includes(":") && ( // Show delete button only for manual entries
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2"
+                onClick={() => handleDeleteEntry(index)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         ))}
         {capturedData.length === 0 && (
           <div className="text-center text-muted-foreground py-8">No captured serial numbers</div>
         )}
       </CardContent>
+
+      {/* Manual Entry Dialog */}
+      <Dialog open={isManualEntryModalOpen} onOpenChange={setIsManualEntryModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add Manual Entry</DialogTitle>
+            <DialogDescription>Enter a serial number to add to captured data.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="manualSerial" className="text-right">
+                Serial Number
+              </Label>
+              <Input
+                id="manualSerial"
+                value={manualSerial}
+                onChange={(e) => setManualSerial(e.target.value)}
+                placeholder="e.g. A001"
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={handleManualEntry}>
+              Add Entry
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Serial Range Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

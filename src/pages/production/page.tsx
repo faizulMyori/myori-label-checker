@@ -27,7 +27,7 @@ export default function ProductionPage() {
   const { productionStatus, setProductionStatus, startProduction, holdProduction, resumeProduction } =
     useProductionState(setProdStatus, conn)
 
-  const { labelRolls, addLabelRoll, updateLabelRoll, verifyLabelRoll, calculateTotalLabels } = useLabelRolls()
+  const { labelRolls, addLabelRoll, updateLabelRoll, verifyLabelRoll, calculateTotalLabels, setLabelRolls } = useLabelRolls()
 
   const [capturedData, setCapturedData] = useState<any[]>([])
   const [duplicatedData, setDuplicatedData] = useState<any[]>([])
@@ -86,6 +86,11 @@ export default function ProductionPage() {
 
   // Stop production and save data to database
   const stopProduction = () => {
+    // Save captured data to Excel first
+    if (capturedData.length > 0) {
+      handleDownload("captured")
+    }
+
     setProdStatus("stopped")
     setProductionStatus("STOPPED")
 
@@ -143,6 +148,8 @@ export default function ProductionPage() {
       const allSerials = generateAllSerials()
       setUnusedSerials(allSerials)
       console.log("Initialized unused serials:", allSerials.length)
+    } else {
+      setUnusedSerials([])
     }
   }, [labelRolls])
 
@@ -159,11 +166,11 @@ export default function ProductionPage() {
   // Handle adding a serial back to unused serials
   const addToUnusedSerials = (serial: string) => {
     if (!serial) return
-
+    console.log(serial)
     // Check if the serial is in captured data
     const isInCapturedData = capturedData.some((item) => item.serial === serial)
 
-    if (isInCapturedData) {
+    if (isInCapturedData && !serial.includes(":")) {
       console.log(`Serial ${serial} is in captured data, not adding to unused serials`)
       return
     }
@@ -171,9 +178,15 @@ export default function ProductionPage() {
     // Only add if it's not already in the list
     setUnusedSerials((prev) => {
       if (!prev.includes(serial)) {
-        const newUnused = [...prev, serial]
-        console.log(`Added ${serial} back to unused serials. Total: ${newUnused.length}`)
-        return newUnused
+        if (serial.includes(":")) {
+          const newUnused = [serial.replace(":", ""), ...prev]
+          console.log(`Added ${serial} back to unused serials. Total: ${newUnused.length}`)
+          return newUnused
+        } else {
+          const newUnused = [serial, ...prev]
+          console.log(`Added ${serial} back to unused serials. Total: ${newUnused.length}`)
+          return newUnused
+        }
       }
       return prev
     })
@@ -204,8 +217,10 @@ export default function ProductionPage() {
         return;
       }
 
+      const newUrl = new Date().toLocaleTimeString()
+
       if (status === "NG") {
-        setMissingData(prevMissing => [...prevMissing, { serial, url, status }]);
+        setMissingData(prevMissing => [...prevMissing, { serial, url: newUrl, status }]);
         return;
       }
 
@@ -230,7 +245,7 @@ export default function ProductionPage() {
       })
 
       if (!isValidSerial) {
-        const newEntry = { serial, url, status: status + " - (INVALID)" }
+        const newEntry = { serial, url: newUrl, status: status + " - (INVALID)" }
 
         setMissingData((prevMissing) => {
           const newMissing = [...prevMissing, newEntry]
@@ -249,7 +264,7 @@ export default function ProductionPage() {
         setDuplicatedData((prevDuplicates) => {
           if (!prevDuplicates.some((dup) => dup.serial === serial)) {
             // Add to duplicated data
-            const newDuplicates = [...prevDuplicates, { serial, url, status }]
+            const newDuplicates = [...prevDuplicates, { serial, url: newUrl, status }]
             // // Remove from unused serials
             // removeFromUnusedSerials(serial)
             return newDuplicates
@@ -272,7 +287,7 @@ export default function ProductionPage() {
       if (status === "OK" && !alreadyCaptured) {
         // Remove from unused serials when captured
         removeFromUnusedSerials(serial)
-        setCapturedData((prevData) => [...prevData, { serial, url, status }])
+        setCapturedData((prevData) => [...prevData, { serial, url: newUrl, status }])
       }
     }
 
@@ -344,26 +359,17 @@ export default function ProductionPage() {
     return Array.from(duplicates)
   }
 
-  // Combine all context values
-  const contextValue = {
-    productionStatus,
-    setProductionStatus,
-    startProduction,
-    holdProduction,
-    resumeProduction,
-    stopProduction,
-    labelRolls,
-    addLabelRoll,
-    updateLabelRoll,
-    verifyLabelRoll,
+  // Create the production context value
+  const productionContextValue = {
+    savedProduction,
+    setSavedProduction,
     calculateTotalLabels,
-    capturedData,
-    setCapturedData,
-    duplicatedData,
-    missingData,
+    productData,
+    setProductData,
     open,
-    setOpen,
-    batchID,
+    handleOpenChange,
+    productionStatus,
+    today: new Date().toISOString().split("T")[0],
     batchNo,
     setBatchNo,
     shiftNo,
@@ -375,10 +381,24 @@ export default function ProductionPage() {
     setSelectedProduct,
     products,
     loading,
-    savedProduction,
-    productData,
-    handleOpenChange,
+    labelRolls,
+    addLabelRoll,
+    updateLabelRoll,
+    verifyLabelRoll,
     saveProduction,
+    checkDuplicates,
+    setCheckDuplicates,
+    checkForDuplicatedRolls: () => {
+      // Implementation of checkForDuplicatedRolls
+    },
+    capturedData,
+    setCapturedData,
+    missingData,
+    setMissingData,
+    handleRemoveMissingEntry,
+    duplicatedData,
+    setDuplicatedData,
+    handleRemoveDuplicatedEntry,
     manualRejectEntries,
     setManualRejectEntries,
     isManualRejectModalOpen,
@@ -390,16 +410,36 @@ export default function ProductionPage() {
     addManualRejectEntries,
     handleDeleteEntry,
     handleDownload,
+    resetProduction: () => {
+      // Reset all state to initial values
+      setSavedProduction(null)
+      setProductData({ id: "", sku: "", brand: "", model: "", type: "", rating: "", size: "" })
+      setBatchNo("")
+      setShiftNo("")
+      setBatchError(false)
+      setSelectedProduct("")
+      setLabelRolls([{ id: "1", rollNumber: "1", startNumber: "", endNumber: "", verified: false }])
+      setCheckDuplicates(false)
+      setCapturedData([])
+      setMissingData([])
+      setDuplicatedData([])
+      setManualRejectEntries([])
+      setNewSerialNumbers([""])
+      setIsManualRejectModalOpen(false)
+      setUnusedSerials([])
+    },
+    startProduction,
+    holdProduction,
+    resumeProduction,
+    stopProduction,
     unusedSerials,
-    handleRemoveMissingEntry,
-    handleRemoveDuplicatedEntry,
-    checkDuplicates,
-    setCheckDuplicates,
-    checkForDuplicatedRolls,
+    setUnusedSerials,
+    removeFromUnusedSerials,
+    addToUnusedSerials
   }
 
   return (
-    <ProductionProvider value={contextValue}>
+    <ProductionProvider value={productionContextValue}>
       <div className="flex h-full flex-col p-4 overflow-y-auto scrollbar w-full">
         <div className="flex flex-1 flex-col gap-2 pb-4">
           <div className="flex items-center justify-between">
