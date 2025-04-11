@@ -29,6 +29,7 @@ export default function CapturedData() {
   const [endSerial, setEndSerial] = useState("")
   const [manualSerial, setManualSerial] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
+  const [deleteEntry, setDeleteEntry] = useState<any | null>(null)
 
   // Set initial values when modal opens based on first label roll
   useEffect(() => {
@@ -162,9 +163,15 @@ export default function CapturedData() {
     // Since we're using reverse(), we need to calculate the correct index
     const actualIndex = capturedData.length - 1 - index
     const entry = capturedData[actualIndex]
+    setDeleteEntry(entry)
+  }
 
-    // Use the new delete function that handles both state and database
-    await handleDeleteCapturedData(entry.serial)
+  const confirmDelete = async () => {
+    if (deleteEntry) {
+      // Use the new delete function that handles both state and database
+      await handleDeleteCapturedData(deleteEntry.serial)
+      setDeleteEntry(null)
+    }
   }
 
   return (
@@ -221,6 +228,25 @@ export default function CapturedData() {
           <div className="text-center text-muted-foreground py-8">No captured serial numbers</div>
         )}
       </CardContent>
+
+      <Dialog open={deleteEntry !== null} onOpenChange={() => setDeleteEntry(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Removal</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove {deleteEntry?.serial} from captured data?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteEntry(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Remove
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Manual Entry Dialog */}
       <Dialog open={isManualEntryModalOpen} onOpenChange={setIsManualEntryModalOpen}>
