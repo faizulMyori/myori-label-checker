@@ -200,11 +200,6 @@ export default function ProductionPage() {
 
   // Stop production without saving data to database
   const stopProduction = () => {
-    // Save captured data to Excel first
-    if (capturedData.length > 0) {
-      handleDownload("captured")
-    }
-
     setProdStatus("stopped")
     setProductionStatus("STOPPED")
     toast.success("Production stopped successfully")

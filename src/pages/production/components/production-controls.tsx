@@ -55,9 +55,9 @@ export default function ProductionControls() {
           size="lg"
           className="bg-slate-700 hover:bg-slate-600"
           disabled={productionStatus === "RUNNING"}
-          onClick={() => handleDownload("all")}
+          onClick={() => handleDownload("captured")}
         >
-          Download Reports
+          Generate Report
         </Button>
         <Button
           size="lg"
