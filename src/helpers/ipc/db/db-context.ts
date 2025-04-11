@@ -73,5 +73,7 @@ export function exposeDBContext() {
 
     create_connection: (ip: any, port: any, com: any) => ipcRenderer.invoke(DB_CREATE_CONNECTION, { ip, port, com }),
     get_connections: () => ipcRenderer.invoke(DB_GET_CONNECTIONS),
+
+    fetchAll: (query: string, params?: any[]) => ipcRenderer.invoke('db:fetchAll', { query, params }),
   });
 }
