@@ -116,6 +116,18 @@ export function useLabelRolls() {
     }, 0)
   }
 
+  // Delete a label roll
+  const deleteLabelRoll = (id: string) => {
+    setLabelRolls(labelRolls.filter(roll => roll.id !== id))
+  }
+
+  // Reset all label rolls to initial state
+  const resetLabelRolls = () => {
+    setLabelRolls([
+      { id: "1", rollNumber: "1", startNumber: "", endNumber: "", verified: false },
+    ])
+  }
+
   return {
     labelRolls,
     setLabelRolls,
@@ -123,6 +135,8 @@ export function useLabelRolls() {
     updateLabelRoll,
     verifyLabelRoll,
     calculateTotalLabels,
+    deleteLabelRoll,
+    resetLabelRolls,
   }
 }
 

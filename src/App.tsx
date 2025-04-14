@@ -6,6 +6,7 @@ import "./localization/i18n";
 import { updateAppLanguage } from "./helpers/language_helpers";
 import { router } from "./routes/router";
 import { RouterProvider } from "@tanstack/react-router";
+import { Toaster } from "sonner"
 
 export type UserContextType = {
   user: null | undefined;
@@ -84,7 +85,10 @@ export default function App() {
 const root = createRoot(document.getElementById("app")!);
 root.render(
   // <React.StrictMode>
-  <App />
+  <>
+    <Toaster position="top-right" richColors closeButton />
+    <App />
+  </>
   // </React.StrictMode>
 );
 

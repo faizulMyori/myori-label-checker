@@ -46,6 +46,8 @@ export default function ProductionDialog() {
     setCheckDuplicates,
     checkForDuplicatedRolls,
     savedProduction,
+    resetLabelRolls,
+    deleteLabelRoll,
   } = useProduction()
 
   const [isEditing, setIsEditing] = React.useState(false)
@@ -151,20 +153,35 @@ export default function ProductionDialog() {
           <div className="mt-4">
             <div className="flex justify-between items-center mb-2">
               <Label>Label Rolls</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={productionStatus === "RUNNING"}
-                onClick={addLabelRoll}
-              >
-                <Plus className="h-4 w-4 mr-1" /> Add Roll
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={productionStatus === "RUNNING"}
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to reset all label rolls?")) {
+                      resetLabelRolls()
+                    }
+                  }}
+                >
+                  Reset Rolls
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={productionStatus === "RUNNING"}
+                  onClick={addLabelRoll}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Add Roll
+                </Button>
+              </div>
             </div>
 
             {labelRolls.map((roll: any) => (
               <div key={roll.id} className="grid grid-cols-12 gap-2 mb-2 items-center">
-                <div className="col-span-3">
+                <div className="col-span-2">
                   <Input
                     placeholder="Roll #"
                     value={roll.rollNumber}
@@ -189,7 +206,20 @@ export default function ProductionDialog() {
                     disabled={roll.verified}
                   />
                 </div>
-                <div className="col-span-3 flex justify-end">
+                <div className="col-span-4 flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to delete this roll?")) {
+                        deleteLabelRoll(roll.id)
+                      }
+                    }}
+                    disabled={roll.verified}
+                  >
+                    Delete
+                  </Button>
                   <Button
                     type="button"
                     size="sm"
