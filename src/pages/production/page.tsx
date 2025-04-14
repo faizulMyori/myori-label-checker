@@ -380,6 +380,7 @@ export default function ProductionPage() {
     products,
     loading,
     labelRolls,
+    setLabelRolls,
     addLabelRoll,
     updateLabelRoll,
     verifyLabelRoll,

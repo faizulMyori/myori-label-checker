@@ -6,7 +6,7 @@ import {
     TCP_RECEIVE
 } from "../helpers/ipc/tcp/tcp-channels";
 import { ipcMain } from 'electron';
-import { WIN_DIALOG_INFO } from './ipc/window/window-channels';
+import { WIN_TOAST } from './ipc/window/window-channels';
 
 let client: net.Socket | null = null;
 let reconnectAttempts = 0;
@@ -68,9 +68,15 @@ export async function connectTcp(ip: string, port: number, event: any) {
                 if (autoReconnectEnabled) {
                     attemptReconnect(ip, port, event);
                 }
-                ipcMain.emit(WIN_DIALOG_INFO, {
-                    title: "Error",
-                    message: `Connection Closed!${autoReconnectEnabled ? ' Reconnecting....' : ''}`,
+                console.log('Emitting toast notification:', {
+                    title: "Connection Closed",
+                    description: autoReconnectEnabled ? 'Reconnecting...' : 'Connection closed',
+                    type: 'error'
+                });
+                event.sender.send('win-toast', {
+                    title: "Connection Closed",
+                    description: autoReconnectEnabled ? 'Reconnecting...' : 'Connection closed',
+                    type: 'error'
                 });
             });
 

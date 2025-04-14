@@ -11,7 +11,8 @@ import {
   WINDOW_MAXIMIZE,
   WINDOW_CLOSE,
   WINDOW_INFO,
-  WINDOW_SELECT_DIRECTORY
+  WINDOW_SELECT_DIRECTORY,
+  WIN_TOAST
 } from "./window-channels";
 import fs from 'fs';
 import path from 'path';
@@ -119,6 +120,17 @@ export function addWindowEventListeners(mainWindow: BrowserWindow) {
     } catch (error) {
       console.error('Error opening file location:', error);
       throw error;
+    }
+  });
+
+  // Handle toast notifications
+  ipcMain.on('win-toast', (_, { title, description, type }) => {
+    console.log('Main process received toast:', { title, description, type });
+    if (mainWindow) {
+      console.log('Sending toast to renderer process');
+      mainWindow.webContents.send('win-toast', { title, description, type });
+    } else {
+      console.error('Main window not available for sending toast');
     }
   });
 }

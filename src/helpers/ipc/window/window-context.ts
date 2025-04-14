@@ -5,11 +5,23 @@ import {
   WINDOW_INFO,
   WINDOW_SELECT_DIRECTORY,
   WINDOW_CHECK_FILE_EXISTS,
-  WINDOW_OPEN_FILE_LOCATION
+  WINDOW_OPEN_FILE_LOCATION,
+  WIN_TOAST
 } from "./window-channels";
 
 export function exposeWindowContext() {
   const { contextBridge, ipcRenderer } = window.require("electron");
+
+  // Expose IPC renderer for toast notifications
+  contextBridge.exposeInMainWorld("electron", {
+    ipcRenderer: {
+      on: (channel: string, callback: (event: any, ...args: any[]) => void) => {
+        console.log('Setting up IPC listener for channel:', channel);
+        ipcRenderer.on(channel, callback);
+      }
+    }
+  });
+
   contextBridge.exposeInMainWorld("electronWindow", {
     minimize: () => ipcRenderer.invoke(WINDOW_MINIMIZE),
     maximize: () => ipcRenderer.invoke(WINDOW_MAXIMIZE),
