@@ -58,8 +58,6 @@ interface ProductionContextType {
   addLabelRoll: () => void
   updateLabelRoll: (id: string, field: keyof LabelRoll, value: string | boolean) => void
   verifyLabelRoll: (id: string) => void
-  deleteLabelRoll: (id: string) => void
-  resetLabelRolls: () => void
   saveProduction: () => void
   checkDuplicates: boolean
   setCheckDuplicates: (value: boolean) => void

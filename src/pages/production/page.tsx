@@ -26,7 +26,7 @@ export default function ProductionPage() {
   const { productionStatus, setProductionStatus, startProduction, holdProduction, resumeProduction } =
     useProductionState(setProdStatus, conn)
 
-  const { labelRolls, addLabelRoll, updateLabelRoll, verifyLabelRoll, calculateTotalLabels, setLabelRolls, deleteLabelRoll, resetLabelRolls } = useLabelRolls()
+  const { labelRolls, addLabelRoll, updateLabelRoll, verifyLabelRoll, calculateTotalLabels, setLabelRolls } = useLabelRolls()
 
   const [capturedData, setCapturedData] = useState<any[]>([])
   const [duplicatedData, setDuplicatedData] = useState<any[]>([])
@@ -359,20 +359,14 @@ export default function ProductionPage() {
 
   // Create the production context value
   const productionContextValue = {
-    productionStatus,
-    setProductionStatus,
-    startProduction,
-    holdProduction,
-    resumeProduction,
-    stopProduction,
     savedProduction,
     setSavedProduction,
     calculateTotalLabels,
     productData,
     setProductData,
     open,
-    setOpen,
     handleOpenChange,
+    productionStatus,
     today: new Date().toISOString().split("T")[0],
     batchNo,
     setBatchNo,
@@ -389,8 +383,6 @@ export default function ProductionPage() {
     addLabelRoll,
     updateLabelRoll,
     verifyLabelRoll,
-    deleteLabelRoll,
-    resetLabelRolls,
     saveProduction,
     checkDuplicates,
     setCheckDuplicates,
@@ -435,6 +427,10 @@ export default function ProductionPage() {
       setIsManualRejectModalOpen(false)
       setUnusedSerials([])
     },
+    startProduction,
+    holdProduction,
+    resumeProduction,
+    stopProduction,
     unusedSerials,
     setUnusedSerials,
     removeFromUnusedSerials,

@@ -118,15 +118,6 @@ export function useProductionSetup(labelRolls: LabelRoll[], calculateTotalLabels
     setOpen(false)
   }
 
-  // Reset all data except production data
-  const resetData = () => {
-    setBatchNo("")
-    setShiftNo("")
-    setSelectedProduct("")
-    setBatchError(false)
-    setCheckDuplicates(false)
-  }
-
   // Return the new state in the hook's return value
   return {
     open,
@@ -153,6 +144,5 @@ export function useProductionSetup(labelRolls: LabelRoll[], calculateTotalLabels
     saveProduction,
     checkDuplicates,
     setCheckDuplicates,
-    resetData,
   }
 }
