@@ -140,40 +140,40 @@ export function closeTcpConnection() {
     });
 }
 
-export function sendData(cmd: string) {
-    //0 = RESET
-    //1 = DO0
-    //2 = DO1
-    //3 = DO0 & DO1
-    //4 = DO2
-    //5 = DO0 & DO2
-    //6 = DO1 & DO2
-    //7 = DO0 & DO1 & DO2
-    //8 = DO3
-    //9 = DO0 & DO3
-    //10 = DO4
-    console.log(cmd)
-    sendDconCommand(cmd)
-        .then((response) => {
-            // if (cmd !== '@0100\r') sendData('@0100\r')
-            console.log('Response:', response);
-        })
-        .catch((err) => {
-            console.error('Error:', err);
-        });
-}
+// export function sendData(cmd: string) {
+//     //0 = RESET
+//     //1 = DO0
+//     //2 = DO1
+//     //3 = DO0 & DO1
+//     //4 = DO2
+//     //5 = DO0 & DO2
+//     //6 = DO1 & DO2
+//     //7 = DO0 & DO1 & DO2
+//     //8 = DO3
+//     //9 = DO0 & DO3
+//     //10 = DO4
+//     console.log(cmd)
+//     sendDconCommand(cmd)
+//         .then((response) => {
+//             // if (cmd !== '@0100\r') sendData('@0100\r')
+//             console.log('Response:', response);
+//         })
+//         .catch((err) => {
+//             console.error('Error:', err);
+//         });
+// }
 
-function sendDconCommand(command: string) {
-    return new Promise((resolve, reject) => {
-        // write to dcon rs485
+// function sendDconCommand(command: string) {
+//     return new Promise((resolve, reject) => {
+//         // write to dcon rs485
 
-        client?.write(command, 'ascii', (err: any) => {
-            if (err) {
-                return reject(err);
-            }
-            client?.on('data', (data: any) => {
-                resolve(data.toString('ascii')); // Convert response buffer to ASCII string
-            });
-        });
-    });
-}
+//         client?.write(command, 'ascii', (err: any) => {
+//             if (err) {
+//                 return reject(err);
+//             }
+//             client?.on('data', (data: any) => {
+//                 resolve(data.toString('ascii')); // Convert response buffer to ASCII string
+//             });
+//         });
+//     });
+// }

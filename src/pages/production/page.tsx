@@ -27,6 +27,25 @@ export default function ProductionPage() {
   const { productionStatus, setProductionStatus, startProduction, holdProduction, resumeProduction } =
     useProductionState(setProdStatus, conn)
 
+  // Monitor TCP connection status
+  useEffect(() => {
+    if (productionStatus !== "RUNNING") return;
+
+    const handleTcpClosed = () => {
+      if (productionStatus === "RUNNING") {
+        window.serial.serial_com_send("@0101\r");
+      }
+    };
+
+    window.tcpConnection.tcp_closed(handleTcpClosed);
+
+    return () => {
+      window.tcpConnection.tcp_closed(undefined);
+    };
+  }, [productionStatus]);
+
+
+
   const { labelRolls, addLabelRoll, updateLabelRoll, verifyLabelRoll, calculateTotalLabels, setLabelRolls } = useLabelRolls()
 
   const [capturedData, setCapturedData] = useState<any[]>([])
@@ -103,13 +122,13 @@ export default function ProductionPage() {
         return
       }
 
+      const newUrl = new Date().toLocaleTimeString()
+
       // Handle case where serial or url is missing
       if (!serial || !url) {
-        setMissingData((prev) => [...prev, { serial: "", url: "", status }]);
+        setMissingData((prev) => [...prev, { serial: serial || "", url: url || "", status }]);
         return;
       }
-
-      const newUrl = new Date().toLocaleTimeString()
 
       if (status === "NG") {
         setMissingData(prevMissing => [...prevMissing, { serial, url: newUrl, status }]);
