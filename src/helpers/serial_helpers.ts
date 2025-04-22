@@ -1,4 +1,4 @@
-const { SerialPort } = require("serialport");
+import { SerialPort } from "serialport";
 
 let serial: any = null;
 
