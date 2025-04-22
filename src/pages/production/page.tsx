@@ -1,6 +1,6 @@
 "use client"
 
-import { useContext, useState, useEffect } from "react"
+import { useContext, useState, useEffect, useCallback } from "react"
 import { UserContext } from "@/App"
 import Footer from "@/components/template/Footer"
 import ProductionControls from "./components/production-controls"
@@ -27,24 +27,17 @@ export default function ProductionPage() {
   const { productionStatus, setProductionStatus, startProduction, holdProduction, resumeProduction } =
     useProductionState(setProdStatus, conn)
 
-  // Monitor TCP connection status
-  useEffect(() => {
-    if (productionStatus !== "RUNNING") return;
+  // // Monitor TCP connection status
+  // useEffect(() => {
+  //   if (productionStatus !== "RUNNING") return;
+  //   window.tcpConnection.tcp_closed(handleTcpClosed);
+  // }, [productionStatus]);
 
-    const handleTcpClosed = () => {
-      if (productionStatus === "RUNNING") {
-        window.serial.serial_com_send("@0101\r");
-      }
-    };
-
-    window.tcpConnection.tcp_closed(handleTcpClosed);
-
-    return () => {
-      window.tcpConnection.tcp_closed(undefined);
-    };
-  }, [productionStatus]);
-
-
+  // const handleTcpClosed = useCallback(() => {
+  //   if (productionStatus === "RUNNING") {
+  //     window.serial.serial_com_send("@0101\r");
+  //   }
+  // }, [productionStatus]);
 
   const { labelRolls, addLabelRoll, updateLabelRoll, verifyLabelRoll, calculateTotalLabels, setLabelRolls } = useLabelRolls()
 
