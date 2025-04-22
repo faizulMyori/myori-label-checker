@@ -77,11 +77,11 @@ function sendDconCommand(command: string) {
     return new Promise((resolve, reject) => {
         // write to dcon rs485
 
-        serial.write(command, 'ascii', (err: any) => {
+        serial?.write(command, 'ascii', (err: any) => {
             if (err) {
                 return reject(err);
             }
-            serial.on('data', (data: any) => {
+            serial?.on('data', (data: any) => {
                 resolve(data.toString('ascii')); // Convert response buffer to ASCII string
             });
         });
