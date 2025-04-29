@@ -140,10 +140,10 @@ export default function ProductionPage() {
 
                   // 🔥 Check OOR
                   if (currentSerialNum > endSerialNum) {
-                    setMissingData((prevMissing) => [
-                      ...prevMissing,
-                      { serial, url: newUrl, status: "OOR" },
-                    ])
+                    // setMissingData((prevMissing) => [
+                    //   ...prevMissing,
+                    //   { serial, url: newUrl, status: "OOR" },
+                    // ])
                   }
                   // 🔥 Normal missing
                   else if (currentSerialNum > lastSerialNum + 1) {
@@ -207,9 +207,9 @@ export default function ProductionPage() {
         const newEntry = { serial, url: newUrl, status: status + " - (INVALID)" }
 
         setMissingData((prevMissing) => {
-          if (prevMissing.some((entry) => entry.serial === newEntry.serial && entry.status === 'OOR')) {
-            return prevMissing
-          }
+          // if (prevMissing.some((entry) => entry.serial === newEntry.serial && entry.status === 'OOR')) {
+          //   return prevMissing
+          // }
           const newMissing = [...prevMissing, newEntry]
           return newMissing
         })
@@ -260,7 +260,7 @@ export default function ProductionPage() {
         setCapturedData((prevData) => {
           // Step 1: Create new array with new item
           const newData = [...prevData, { serial, url: newUrl, status }]
-
+          setMissingData((prevMissing) => prevMissing.filter((item) => item.serial !== serial))
           // Step 2: Sort by serial number
           newData.sort((a, b) => {
             const matchA = a.serial.match(/^([A-Za-z]+)(\d+)$/)
