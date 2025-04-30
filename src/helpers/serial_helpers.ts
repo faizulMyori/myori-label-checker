@@ -2,7 +2,7 @@ import { SerialPort } from "serialport";
 
 let serial: SerialPort | null = null;
 let heartbeatInterval: NodeJS.Timeout | null = null;
-let currentPortPath: string | null = null;
+let currentPortPath: string = '';
 
 export async function openSerialPort(port: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -77,7 +77,7 @@ function sendDconCommand(command: string): Promise<string> {
         serial.write(command, 'ascii', (err: any) => {
             if (err) return reject(err);
 
-            serial.once('data', (data: Buffer) => {
+            serial?.once('data', (data: Buffer) => {
                 resolve(data.toString('ascii'));
             });
         });
