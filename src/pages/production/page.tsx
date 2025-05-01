@@ -147,6 +147,7 @@ export default function ProductionPage() {
                   }
                   // 🔥 Normal missing
                   else if (currentSerialNum > lastSerialNum + 1) {
+                    window.serial.serial_com_send("@0101\r");
                     for (let i = lastSerialNum + 1; i < currentSerialNum; i++) {
                       const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`
                       setMissingData((prevMissing) => [

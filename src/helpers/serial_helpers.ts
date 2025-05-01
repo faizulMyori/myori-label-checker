@@ -81,7 +81,7 @@ function sendDconCommand(command: string) {
             if (err) {
                 return reject(err);
             }
-            serial?.on('data', (data: any) => {
+            serial?.once('data', (data: any) => {
                 resolve(data.toString('ascii')); // Convert response buffer to ASCII string
             });
         });
