@@ -7,6 +7,7 @@ import {
 } from "../helpers/ipc/tcp/tcp-channels";
 import { ipcMain } from 'electron';
 import { WIN_TOAST } from './ipc/window/window-channels';
+import logger from '../utils/logger';
 
 let client: net.Socket | null = null;
 let reconnectAttempts = 0;
@@ -53,7 +54,7 @@ export async function connectTcp(ip: string, port: number, event: any) {
                     const dataString = data.toString().trim();
                     if (dataString.startsWith('ER,') || dataString.startsWith('PING')) return;
                     console.log(`Received: ${dataString}`);
-
+                    logger.info(`Received: ${dataString}`);
                     event.sender.send(TCP_RECEIVE, dataString);
                 } catch (parseError: any) {
                     event.sender.send(TCP_ERROR, parseError.message);
