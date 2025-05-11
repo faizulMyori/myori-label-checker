@@ -245,18 +245,12 @@ export default function ProductionPage() {
         removeFromUnusedSerials(serial)
 
         // Insert into database immediately
-        try {
-          await window.sqlite.create_label({
-            batch_id: batchID,
-            serial: serial,
-            qr_code: newUrl,
-            status: status,
-          })
-          console.log(`Serial ${serial} saved to database`)
-        } catch (error) {
-          console.error(`Error saving serial ${serial} to database:`, error)
-          toast.error(`Error saving serial ${serial} to database`)
-        }
+        window.sqlite.create_label({
+          batch_id: batchID,
+          serial: serial,
+          qr_code: newUrl,
+          status: status,
+        })
 
         setCapturedData((prevData) => {
           // Step 1: Create new array with new item
