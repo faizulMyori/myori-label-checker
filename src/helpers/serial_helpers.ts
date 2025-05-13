@@ -3,17 +3,31 @@ import { SerialPort } from "serialport";
 let serial: any = null;
 
 export async function openSerialPort(port: string): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+        // If a serial port is already open, close it first
+        if (serial && serial.isOpen) {
+            try {
+                await closeSerialPort(); // Force close existing connection
+                console.log("Existing serial port closed before reconnecting");
+            } catch (err: any) {
+                console.error("Error closing existing serial port:", err.message);
+                // Continue to attempt reconnect anyway
+            }
+        }
+
+        // Now open the new serial port
         serial = new SerialPort({ path: port, baudRate: 9600 }, (err: any) => {
             if (err) {
-                console.log(err)
+                console.error("Failed to open serial port:", err.message);
                 reject(`Connection error: ${err.message}`);
                 return;
             }
-            console.log("Connected to serial port");
+
+            console.log("Connected to serial port:", port);
             resolve('Connected successfully');
         });
 
+        // Catch any runtime errors on the port
         serial.on("error", (error: any) => {
             reject(`Connection error: ${error.message}`);
         });
