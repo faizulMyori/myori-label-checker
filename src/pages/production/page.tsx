@@ -148,6 +148,9 @@ export default function ProductionPage() {
                   // 🔥 Normal missing
                   else if (currentSerialNum > lastSerialNum + 1) {
                     window.serial.serial_com_send("@0101\r");
+                    setTimeout(() => {
+                      window.serial.serial_com_send("@0100\r");
+                    }, 100);
                     for (let i = lastSerialNum + 1; i < currentSerialNum; i++) {
                       const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`
                       setMissingData((prevMissing) => [
@@ -233,7 +236,12 @@ export default function ProductionPage() {
           return prevDuplicates
         })
 
-        window.serial.serial_com_send("@0101\r")
+        window.serial.serial_com_send("@0101\r");
+
+        setTimeout(() => {
+          window.serial.serial_com_send("@0100\r");
+        }, 100);
+
         return
       } else if (alreadyCaptured && !checkDuplicates) {
         return

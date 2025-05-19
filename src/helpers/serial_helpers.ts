@@ -72,29 +72,23 @@ export function sendSerialData(cmd: string) {
     //8 = DO3
     //9 = DO0 & DO3
     //10 = DO4
-    console.log(cmd)
+    // console.log(cmd)
     sendDconCommand(cmd)
-        .then((response) => {
-            if (cmd !== '@0100\r') {
-                setTimeout(() => {
-                    sendSerialData('@0100\r')
-                }, 1500)
-            }
-            console.log('Response:', response);
-        })
-        .catch((err) => {
-            console.error('Error:', err);
-        });
 }
 
 function sendDconCommand(command: string) {
     return new Promise((resolve, reject) => {
         // write to dcon rs485
-
+        console.log(command)
         serial?.write(command, 'ascii', (err: any) => {
             if (err) {
                 return reject(err);
             }
+            // if (command !== '@0100\r') {
+            //     setTimeout(() => {
+            //         sendSerialData('@0100\r')
+            //     }, 1500)
+            // }
             serial?.once('data', (data: any) => {
                 resolve(data.toString('ascii')); // Convert response buffer to ASCII string
             });

@@ -49,6 +49,8 @@ export async function connectTcp(ip: string, port: number, event: any) {
             event.sender.send(TCP_CONNECTED);
             client?.removeAllListeners(); // Remove all previous listeners
             setInterval(keepAlive, 10000); // Send keep-alive packets every 30 seconds
+            sendSerialData('@0100\r')
+
             // Listen for incoming data
             client?.on('data', (data: Buffer) => {
                 try {
@@ -121,7 +123,7 @@ function attemptReconnect(ip: string, port: number, event: any) {
     // reconnectAttempts++;
     console.log(`Reconnecting in ${RECONNECT_DELAY / 1000} seconds...`);
     sendSerialData('@0102\r')
-    
+
     setTimeout(() => {
         connectTcp(ip, port, event)
             .then(() => console.log('Reconnected successfully'))
