@@ -208,6 +208,11 @@ export default function ProductionPage() {
       })
 
       if (!isValidSerial) {
+        window.serial.serial_com_send("@0101\r");
+
+        setTimeout(() => {
+          window.serial.serial_com_send("@0100\r");
+        }, 100);
         const newEntry = { serial, url: newUrl, status: status + " - (INVALID)" }
 
         setMissingData((prevMissing) => {
