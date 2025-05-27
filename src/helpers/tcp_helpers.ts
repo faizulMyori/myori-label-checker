@@ -127,7 +127,7 @@ function attemptReconnect(ip: string, port: number, event: any) {
     setTimeout(() => {
         connectTcp(ip, port, event)
             .then(() => console.log('Reconnected successfully'))
-            .catch((err) => console.error(`Reconnect failed: ${err}`));
+            .catch((err) => attemptReconnect(ip, port, event));
     }, RECONNECT_DELAY);
 }
 
