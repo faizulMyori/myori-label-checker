@@ -17,57 +17,71 @@ console.log('Log file path:', logFilePath); // visible in terminal
 const inDevelopment = process.env.NODE_ENV === "development";
 
 function createWindow() {
-  const preload = path.join(__dirname, "preload.js");
-  const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    maximizable: true,
-    //fullscreen: true,
-    autoHideMenuBar: true,
-    webPreferences: {
-      devTools: true,
-      contextIsolation: true,
-      nodeIntegration: true,
-      nodeIntegrationInSubFrames: false,
-      preload: preload,
-    },
-    titleBarStyle: "hidden",
-  });
-  registerListeners(mainWindow);
+  const gotTheLock = app.requestSingleInstanceLock();
+  if (!gotTheLock) {
+    app.quit();
+    return;
+  } else {
+    app.on("second-instance", (event, commandLine, workingDirectory) => {
+      // Someone tried to run a second instance, we should focus our window.
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.focus();
+      }
+    });
 
-  mainWindow.on("close", async (event) => {
-    event.preventDefault();
+    const preload = path.join(__dirname, "preload.js");
+    const mainWindow = new BrowserWindow({
+      width: 800,
+      height: 600,
+      maximizable: true,
+      //fullscreen: true,
+      autoHideMenuBar: true,
+      webPreferences: {
+        devTools: true,
+        contextIsolation: true,
+        nodeIntegration: true,
+        nodeIntegrationInSubFrames: false,
+        preload: preload,
+      },
+      titleBarStyle: "hidden",
+    });
+    registerListeners(mainWindow);
 
-    const response = await dialog.showMessageBox(mainWindow, {
-      type: "question",
-      buttons: ["Cancel", "Exit"],
-      defaultId: 1,
-      cancelId: 0,
-      title: "Confirm Exit",
-      message: "Sure to exit?"
+    mainWindow.on("close", async (event) => {
+      event.preventDefault();
+
+      const response = await dialog.showMessageBox(mainWindow, {
+        type: "question",
+        buttons: ["Cancel", "Exit"],
+        defaultId: 1,
+        cancelId: 0,
+        title: "Confirm Exit",
+        message: "Sure to exit?"
+      })
+
+      if (response.response === 1) {
+        try {
+          const result = await closeSerialPort();
+          console.log(result)
+        } catch (err) {
+          console.log(err)
+        } finally {
+          mainWindow.removeAllListeners("close")
+          mainWindow.close()
+          app.quit()
+        }
+        
+      }
     })
 
-    if (response.response === 1) {
-      try {
-        const result = await closeSerialPort();
-        console.log(result)
-      } catch (err) {
-        console.log(err)
-      } finally {
-        mainWindow.removeAllListeners("close")
-        mainWindow.close()
-        app.quit()
-      }
-      
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+      mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    } else {
+      mainWindow.loadFile(
+        path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+      );
     }
-  })
-
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-  } else {
-    mainWindow.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
-    );
   }
 }
 
