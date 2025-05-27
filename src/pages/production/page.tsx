@@ -137,7 +137,7 @@ export default function ProductionPage() {
                   window.serial.serial_com_send("@0101\r")
                   setTimeout(() => {
                     window.serial.serial_com_send("@0100\r")
-                  }, 1500)
+                  }, 200)
                   // Skipped entries before first received serial
                   for (let i = startSerialNum; i < currentSerialNum; i++) {
                     const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`
@@ -184,7 +184,7 @@ export default function ProductionPage() {
                   window.serial.serial_com_send("@0101\r")
                   setTimeout(() => {
                     window.serial.serial_com_send("@0100\r")
-                  }, 500)
+                  }, 200)
 
                   for (let i = lastSerialNum + 1; i < currentSerialNum; i++) {
                     const skippedSerial = `${prefix}${String(i).padStart(numLength, "0")}`
@@ -246,7 +246,7 @@ export default function ProductionPage() {
 
         setTimeout(() => {
           window.serial.serial_com_send("@0100\r");
-        }, 1500);
+        }, 200);
         const newEntry = { serial, url: newUrl, status: status + " - (INVALID)" }
 
         setMissingData((prevMissing) => {
@@ -279,7 +279,7 @@ export default function ProductionPage() {
 
         setTimeout(() => {
           window.serial.serial_com_send("@0100\r");
-        }, 1500);
+        }, 200);
 
         return
       } else if (alreadyCaptured && !checkDuplicates) {
