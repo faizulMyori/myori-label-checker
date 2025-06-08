@@ -39,9 +39,7 @@
   "private": true,
   "scripts": {
     "dev": "node dev-scripts/dev.js",
-    "dev:better": "cross-env USE_BETTER_SQLITE=true node dev-scripts/dev.js",
     "start": "electron .",
-    "start:better": "cross-env USE_BETTER_SQLITE=true electron .",
     "build": "npm run build:all",
     "build:main": "vite build -c vite.main.config.ts",
     "build:preload": "vite build -c vite.preload.config.ts",
