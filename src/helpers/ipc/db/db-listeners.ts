@@ -373,7 +373,7 @@ export function addDBEventListeners() {
     try {
       // Get all entries from excel_path table
       const excel_save = await fetchOne<{ excel_save_path: string }>("SELECT * FROM excel_path ORDER BY id DESC LIMIT 1");
-      console.log("Raw database excel_save:", excel_save);
+      // console.log("Raw database excel_save:", excel_save);
 
       if (!excel_save) {
         console.log("No data found in excel_path table, returning default");
@@ -382,7 +382,7 @@ export function addDBEventListeners() {
 
       // Get the first (most recent) entry
       const path = excel_save.excel_save_path;
-      console.log("Returning saved path:", excel_save);
+      // console.log("Returning saved path:", excel_save);
       return { path };
     } catch (error) {
       console.error("Error retrieving Excel save path:", error);

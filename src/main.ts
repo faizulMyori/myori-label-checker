@@ -75,12 +75,23 @@ function createWindow() {
       }
     })
 
-    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    // In development mode, use Vite dev server
+    if (process.env.NODE_ENV === 'development') {
+      if (process.env.MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+        mainWindow.loadURL(process.env.MAIN_WINDOW_VITE_DEV_SERVER_URL);
+      }
     } else {
-      mainWindow.loadFile(
-        path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
-      );
+      // In production mode, load from built files
+      console.log('Loading in production mode');
+      console.log('__dirname:', __dirname);
+      console.log('app.getAppPath():', app.getAppPath());
+      
+      // Use a simple path relative to the main.js location
+      // Since main.js is in .vite/build/ and renderer is in .vite/renderer/
+      const rendererPath = path.join(__dirname, '../renderer/main_window/index.html');
+      console.log('Loading renderer from:', rendererPath);
+      
+      mainWindow.loadFile(rendererPath);
     }
   }
 }
