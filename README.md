@@ -19,7 +19,7 @@
 - 🏷️ **Label Checking and Verification** - Validate and verify product labels
 - 📦 **Inventory Management** - Track and manage your inventory
 - 🏭 **Production Tracking** - Monitor production processes
-- 🌐 **Multi-language Support** - Use the application in your preferred language
+- 🌐 **Multi-language Support** ![In Progress](https://img.shields.io/badge/-In%20Progress-yellow) - Use the application in your preferred language *(coming soon)*
 - 🌓 **Dark/Light Theme** - Choose your visual preference
 - 🔄 **Automatic Updates** - Always stay up-to-date with the latest features
 
