@@ -1,7 +1,7 @@
 {
   "name": "myori-label-checker",
   "productName": "myori-label-checker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "myori-label-checker",
   "main": ".vite/build/main.js",
   "build": {
