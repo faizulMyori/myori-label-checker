@@ -13,6 +13,13 @@
       "node_modules/**/*",
       "package.json"
     ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "faizulMyori",
+        "repo": "myori-label-checker"
+      }
+    ],
     "directories": {
       "output": "dist",
       "buildResources": "assets"
@@ -32,7 +39,9 @@
   "private": true,
   "scripts": {
     "dev": "node dev-scripts/dev.js",
+    "dev:better": "cross-env USE_BETTER_SQLITE=true node dev-scripts/dev.js",
     "start": "electron .",
+    "start:better": "cross-env USE_BETTER_SQLITE=true electron .",
     "build": "npm run build:all",
     "build:main": "vite build -c vite.main.config.ts",
     "build:preload": "vite build -c vite.preload.config.ts",
@@ -55,7 +64,6 @@
   "author": "Faizul <faizul@myori.my>",
   "license": "MIT",
   "devDependencies": {
-    "electron-builder": "^26.0.16",
     "@eslint/compat": "^1.2.6",
     "@eslint/js": "^9.18.0",
     "@playwright/test": "^1.50.1",
@@ -64,13 +72,16 @@
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/bcrypt": "^5.0.2",
+    "@types/better-sqlite3": "^7.6.9",
     "@types/eslint-config-prettier": "^6.11.3",
     "@types/node": "^22.13.0",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@types/react-window": "^1.8.8",
     "@types/winston": "^2.4.4",
+    "cross-env": "^7.0.3",
     "electron": "34.0.2",
+    "electron-builder": "^26.0.16",
     "electron-devtools-installer": "^4.0.0",
     "electron-playwright-helpers": "^1.7.1",
     "electron-rebuild": "^3.2.9",
@@ -115,6 +126,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "babel-plugin-react-compiler": "^19.0.0-beta-714736e-20250131",
     "bcrypt": "^5.1.1",
+    "better-sqlite3": "^11.10.0",
     "check-disk-space": "^3.4.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -129,7 +141,6 @@
     "react-window": "^1.8.11",
     "serialport": "^10.3.0",
     "sonner": "^2.0.3",
-    "sqlite-electron": "^3.2.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
     "winston": "^3.17.0",
