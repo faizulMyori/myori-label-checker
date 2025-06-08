@@ -46,11 +46,37 @@ cd myori-label-checker
 npm install
 ```
 
+### Environment Setup
+
+Create a `.env` file in the project root for development:
+
+```bash
+# Create a .env file with the required environment variables
+echo "LICENSE_SECRET_KEY=your-development-secret-key" > .env
+```
+
+For more details on environment variable configuration, see [ENV-SETUP.md](ENV-SETUP.md).
+
 ### Rebuild packages
 
 ```bash
 npx electron-rebuild
 ```
+
+### Environment Variables Setup
+
+This application uses environment variables for configuration, particularly for license key functionality. 
+
+For development:
+1. Create a `.env` file in the project root
+2. Add your environment variables (e.g., `LICENSE_SECRET_KEY=your-dev-key`)
+
+For production:
+1. Create a `.env.production` file in the project root
+2. Add your production environment variables
+3. Build using `npm run dist`
+
+See [ENV-SETUP.md](./ENV-SETUP.md) for detailed instructions.
 
 ## 💻 Development
 
