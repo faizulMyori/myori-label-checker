@@ -13,12 +13,6 @@
       "node_modules/**/*",
       "package.json"
     ],
-    "extraResources": [
-      {
-        "from": ".env.production",
-        "to": ".env"
-      }
-    ],
     "publish": [
       {
         "provider": "github",

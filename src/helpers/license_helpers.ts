@@ -17,15 +17,15 @@ export function getMachineId(): string {
     const cpus = os.cpus();
     const networkInterfaces = os.networkInterfaces();
     const hostname = os.hostname();
-    
+
     // Create a string with hardware information
     let hardwareStr = hostname;
-    
+
     // Add CPU information
     if (cpus && cpus.length > 0) {
       hardwareStr += cpus[0].model;
     }
-    
+
     // Add MAC address (if available)
     const macs: string[] = [];
     Object.keys(networkInterfaces).forEach(interfaceName => {
@@ -38,13 +38,13 @@ export function getMachineId(): string {
         });
       }
     });
-    
+
     if (macs.length > 0) {
       // Sort to ensure consistent order
       macs.sort();
       hardwareStr += macs.join('');
     }
-    
+
     // Create a hash of the hardware string
     const hash = crypto.createHash('sha256').update(hardwareStr).digest('hex');
     return hash;
@@ -72,43 +72,43 @@ export function validateLicenseKey(licenseKey: string): { valid: boolean; expiry
   try {
     // Remove formatting
     const cleanKey = licenseKey.replace(/-/g, '');
-    
+
     // Extract the checksum (last 8 characters)
     const checksum = cleanKey.slice(-8);
     const encryptedWithIV = cleanKey.slice(0, -8);
-    
+
     // Verify checksum
     const calculatedChecksum = crypto.createHash('md5').update(encryptedWithIV).digest('hex').substring(0, 8);
     if (checksum !== calculatedChecksum) {
       return { valid: false, error: 'Invalid license key (checksum mismatch)' };
     }
-    
+
     // Split the IV and encrypted data
     const [ivHex, encryptedLicense] = encryptedWithIV.split(':');
     if (!ivHex || !encryptedLicense) {
       return { valid: false, error: 'Invalid license key format' };
     }
-    
+
     // Convert IV from hex to buffer
     const iv = Buffer.from(ivHex, 'hex');
-    
+
     // Create key buffer from the secret key
     const key = crypto.scryptSync(SECRET_KEY, 'salt', 32);
-    
+
     // Decrypt the license data using createDecipheriv
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
     let decrypted = decipher.update(encryptedLicense, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     // Parse the license data
     const licenseData = JSON.parse(decrypted);
-    
+
     // Check if the license is for this machine
     const currentMachineId = getMachineId();
     if (licenseData.machineId !== currentMachineId) {
       return { valid: false, error: 'License key is not valid for this machine' };
     }
-    
+
     // Check expiry date if present
     if (licenseData.expiryDate) {
       const expiryDate = new Date(licenseData.expiryDate);
@@ -117,7 +117,7 @@ export function validateLicenseKey(licenseKey: string): { valid: boolean; expiry
       }
       return { valid: true, expiryDate };
     }
-    
+
     return { valid: true };
   } catch (error) {
     console.error('Error validating license key:', error);
@@ -145,13 +145,13 @@ export function initializeLicenseValidationTable() {
 export function saveLicenseValidation(licenseKey: string, isValid: boolean, expiryDate?: Date) {
   const machineId = getMachineId();
   const lastChecked = new Date().toISOString();
-  
+
   // Check if a record already exists for this machine
   const existingRecord = fetchOne(
-    "SELECT * FROM license_validation WHERE machine_id = ?", 
+    "SELECT * FROM license_validation WHERE machine_id = ?",
     [machineId]
   );
-  
+
   if (existingRecord) {
     // Update existing record
     executeQuery(
@@ -171,21 +171,21 @@ export function saveLicenseValidation(licenseKey: string, isValid: boolean, expi
 export function checkMachineLicense(): { valid: boolean; expiryDate?: Date; error?: string } {
   try {
     const machineId = getMachineId();
-    
+
     // Get the license record for this machine
     const licenseRecord: any = fetchOne(
-      "SELECT * FROM license_validation WHERE machine_id = ?", 
+      "SELECT * FROM license_validation WHERE machine_id = ?",
       [machineId]
     );
-    
+
     if (!licenseRecord) {
       return { valid: false, error: 'No license found for this machine' };
     }
-    
+
     if (!licenseRecord.is_valid) {
       return { valid: false, error: 'License is not valid' };
     }
-    
+
     // Check expiry date if present
     if (licenseRecord.expiry_date) {
       const expiryDate = new Date(licenseRecord.expiry_date);
@@ -199,7 +199,7 @@ export function checkMachineLicense(): { valid: boolean; expiryDate?: Date; erro
       }
       return { valid: true, expiryDate };
     }
-    
+
     return { valid: true };
   } catch (error) {
     console.error('Error checking machine license:', error);
