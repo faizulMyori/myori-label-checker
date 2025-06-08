@@ -153,20 +153,9 @@ autoUpdater.on('update-downloaded', () => {
     updateProgressWindow = null;
   }
 
-  const mainWindow = BrowserWindow.getFocusedWindow();
-  if (!mainWindow) return;
-
-  dialog.showMessageBox(mainWindow, {
-    type: 'info',
-    title: 'Update Ready',
-    message: 'Update has been downloaded. The application will be restarted to install the update.',
-    buttons: ['Restart Now', 'Later'],
-    defaultId: 0
-  }).then(({ response }) => {
-    if (response === 0) {
-      autoUpdater.quitAndInstall(false, true);
-    }
-  });
+  // Auto restart the application after update is downloaded
+  console.log('Update downloaded, restarting application...');
+  autoUpdater.quitAndInstall(false, true);
 });
 
 autoUpdater.on('error', (err) => {
