@@ -9,12 +9,183 @@ import {
   initializeDatabase,
 } from "./helpers/db_helpers";
 import { closeSerialPort } from "./helpers/serial_helpers";
+import { autoUpdater } from "electron-updater";
 
 
 const logFilePath = path.join(app.getPath('userData'), 'logs', 'app.log');
 console.log('Log file path:', logFilePath); // visible in terminal
 
 const inDevelopment = process.env.NODE_ENV === "development";
+
+// Configure auto updater
+autoUpdater.logger = console;
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
+
+let updateProgressWindow: BrowserWindow | null = null;
+
+function createUpdateProgressWindow() {
+  updateProgressWindow = new BrowserWindow({
+    width: 400,
+    height: 200,
+    frame: false,
+    resizable: false,
+    center: true,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+    parent: BrowserWindow.getFocusedWindow() || undefined,
+    modal: true,
+  });
+
+  // Create a simple HTML content for the progress window
+  const progressHtml = `
+    <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f5;
+            color: #333;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+          }
+          h3 {
+            margin-bottom: 20px;
+          }
+          .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+          }
+          .progress-bar {
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s;
+          }
+          .percent {
+            margin-top: 10px;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <h3>Downloading Update</h3>
+        <div class="progress-container">
+          <div class="progress-bar" id="progress"></div>
+        </div>
+        <div class="percent" id="percent">0%</div>
+        <script>
+          window.electronAPI = {
+            updateProgress: (percent) => {
+              document.getElementById('progress').style.width = percent + '%';
+              document.getElementById('percent').innerText = percent + '%';
+            }
+          };
+        </script>
+      </body>
+    </html>
+  `;
+
+  // Load the HTML content
+  updateProgressWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(progressHtml)}`);
+  updateProgressWindow.setAlwaysOnTop(true);
+
+  return updateProgressWindow;
+}
+
+function checkForUpdates() {
+  if (inDevelopment) {
+    console.log('Skipping update check in development mode');
+    return;
+  }
+
+  autoUpdater.checkForUpdates().catch(err => {
+    console.error('Error checking for updates:', err);
+  });
+}
+
+// Auto updater events
+autoUpdater.on('update-available', (info) => {
+  const mainWindow = BrowserWindow.getFocusedWindow();
+  if (!mainWindow) return;
+
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: 'Update Available',
+    message: `A new version (${info.version}) is available. Do you want to download it now?`,
+    buttons: ['Yes', 'No'],
+    defaultId: 0
+  }).then(({ response }) => {
+    if (response === 0) {
+      createUpdateProgressWindow();
+      autoUpdater.downloadUpdate().catch(err => {
+        console.error('Error downloading update:', err);
+        if (updateProgressWindow) {
+          updateProgressWindow.close();
+          updateProgressWindow = null;
+        }
+      });
+    }
+  });
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  if (updateProgressWindow) {
+    const percent = Math.round(progressObj.percent);
+    updateProgressWindow.webContents.executeJavaScript(`window.electronAPI.updateProgress(${percent})`);
+  }
+});
+
+autoUpdater.on('update-downloaded', () => {
+  if (updateProgressWindow) {
+    updateProgressWindow.close();
+    updateProgressWindow = null;
+  }
+
+  const mainWindow = BrowserWindow.getFocusedWindow();
+  if (!mainWindow) return;
+
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: 'Update Ready',
+    message: 'Update has been downloaded. The application will be restarted to install the update.',
+    buttons: ['Restart Now', 'Later'],
+    defaultId: 0
+  }).then(({ response }) => {
+    if (response === 0) {
+      autoUpdater.quitAndInstall(false, true);
+    }
+  });
+});
+
+autoUpdater.on('error', (err) => {
+  console.error('Update error:', err);
+  if (updateProgressWindow) {
+    updateProgressWindow.close();
+    updateProgressWindow = null;
+  }
+
+  const mainWindow = BrowserWindow.getFocusedWindow();
+  if (mainWindow) {
+    dialog.showMessageBox(mainWindow, {
+      type: 'error',
+      title: 'Update Error',
+      message: 'An error occurred while updating the application.',
+      detail: err.message
+    });
+  }
+});
 
 function createWindow() {
   const gotTheLock = app.requestSingleInstanceLock();
@@ -93,6 +264,8 @@ function createWindow() {
       
       mainWindow.loadFile(rendererPath);
     }
+
+    return mainWindow;
   }
 }
 
@@ -106,9 +279,13 @@ async function installExtensions() {
 }
 
 app.whenReady()
-  .then(createWindow)
-  .then(installExtensions)
-  .then(initializeDatabase);
+  .then(() => {
+    const mainWindow = createWindow();
+    installExtensions();
+    initializeDatabase();
+    // Check for updates after the app is ready and window is created
+    checkForUpdates();
+  });
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
