@@ -35,10 +35,12 @@ interface Batch {
 
 // Preload types
 interface ThemeModeContext {
-  theme: string;
-  setTheme: (theme: string) => void;
+  toggle: () => Promise<boolean>;
+  dark: () => Promise<void>;
+  light: () => Promise<void>;
+  system: () => Promise<boolean>;
+  current: () => Promise<"dark" | "light" | "system">;
 }
-
 interface ElectronWindow {
   minimize: () => Promise<void>;
   maximize: () => Promise<void>;
@@ -50,87 +52,82 @@ interface ElectronWindow {
 }
 
 interface sqlite {
-  get_connections: () => Promise<any>;
-  save_connections: (data: any) => Promise<any>;
-  get_products: () => Promise<any>;
-  get_product: (id: number) => Promise<any>;
-  save_product: (data: any) => Promise<any>;
-  update_product: (id: number, data: any) => Promise<any>;
-  delete_product: (id: number) => Promise<any>;
-  get_batches: () => Promise<any>;
-  get_batch: (id: number) => Promise<any>;
-  save_batch: (data: any) => Promise<any>;
-  update_batch: (id: number, data: any) => Promise<any>;
-  delete_batch: (id: number) => Promise<any>;
-  get_labels: () => Promise<any>;
-  get_label: (id: number) => Promise<any>;
-  save_label: (data: any) => Promise<any>;
-  update_label: (id: number, data: any) => Promise<any>;
-  delete_label: (id: number) => Promise<any>;
-  get_label_by_serial: (serial: string) => Promise<any>;
-  get_label_by_qr: (qr: string) => Promise<any>;
-  get_label_by_batch: (batch_id: number) => Promise<any>;
-  get_label_by_batch_and_status: (batch_id: number, status: string) => Promise<any>;
-  get_label_by_status: (status: string) => Promise<any>;
-  get_label_count_by_batch: (batch_id: number) => Promise<any>;
-  get_label_count_by_batch_and_status: (batch_id: number, status: string) => Promise<any>;
-  get_label_count_by_status: (status: string) => Promise<any>;
-  get_label_count: () => Promise<any>;
-  get_batch_count: () => Promise<any>;
-  get_product_count: () => Promise<any>;
-  get_batch_by_product: (product_id: number) => Promise<any>;
-  get_batch_count_by_product: (product_id: number) => Promise<any>;
-  get_label_by_product: (product_id: number) => Promise<any>;
-  get_label_count_by_product: (product_id: number) => Promise<any>;
-  get_label_by_product_and_status: (product_id: number, status: string) => Promise<any>;
-  get_label_count_by_product_and_status: (product_id: number, status: string) => Promise<any>;
-  get_label_by_batch_and_product: (batch_id: number, product_id: number) => Promise<any>;
-  get_label_count_by_batch_and_product: (batch_id: number, product_id: number) => Promise<any>;
-  get_label_by_batch_and_product_and_status: (batch_id: number, product_id: number, status: string) => Promise<any>;
-  get_label_count_by_batch_and_product_and_status: (batch_id: number, product_id: number, status: string) => Promise<any>;
-  get_label_by_date: (date: string) => Promise<any>;
-  get_label_count_by_date: (date: string) => Promise<any>;
-  get_label_by_date_and_status: (date: string, status: string) => Promise<any>;
-  get_label_count_by_date_and_status: (date: string, status: string) => Promise<any>;
-  get_label_by_date_and_product: (date: string, product_id: number) => Promise<any>;
-  get_label_count_by_date_and_product: (date: string, product_id: number) => Promise<any>;
-  get_label_by_date_and_product_and_status: (date: string, product_id: number, status: string) => Promise<any>;
-  get_label_count_by_date_and_product_and_status: (date: string, product_id: number, status: string) => Promise<any>;
-  get_label_by_date_and_batch: (date: string, batch_id: number) => Promise<any>;
-  get_label_count_by_date_and_batch: (date: string, batch_id: number) => Promise<any>;
-  get_label_by_date_and_batch_and_status: (date: string, batch_id: number, status: string) => Promise<any>;
-  get_label_count_by_date_and_batch_and_status: (date: string, batch_id: number, status: string) => Promise<any>;
-  get_label_by_date_and_batch_and_product: (date: string, batch_id: number, product_id: number) => Promise<any>;
-  get_label_count_by_date_and_batch_and_product: (date: string, batch_id: number, product_id: number) => Promise<any>;
-  get_label_by_date_and_batch_and_product_and_status: (date: string, batch_id: number, product_id: number, status: string) => Promise<any>;
-  get_label_count_by_date_and_batch_and_product_and_status: (date: string, batch_id: number, product_id: number, status: string) => Promise<any>;
+  db_login: (username: any, password: any) => Promise<void>;
+
+  create_product: (data: any) => Promise<void>;
+  get_products: () => Promise<Product[]>;
+  search_products: (query: string) => Promise<Product[]>;
+  update_product: (data: any) => Promise<void>;
+  delete_product: (id: any) => Promise<void>;
+
+  create_license: (data: any) => Promise<void>;
+  get_licenses: () => Promise<any[]>;
+  search_licenses: (query: string) => Promise<any[]>;
+  update_license: (data: any) => Promise<void>;
+  delete_license: (id: any) => Promise<void>;
+
+  create_user: (data: any) => Promise<void>;
+  get_users: () => Promise<any[]>;
+  search_users: (query: string) => Promise<any[]>;
+  update_user: (data: any) => Promise<void>;
+  delete_user: (id: any) => Promise<void>;
+
+  create_batch: (data: any) => Promise<Batch>;
+  get_batchs: () => Promise<Batch[]>;
+  search_batchs: (query: string) => Promise<Batch[]>;
+  update_batch: (data: any) => Promise<void>;
+  delete_batch: (id: number) => Promise<{ success: boolean; message?: string }>;
+
+  create_label: (data: any) => Promise<void>;
+  get_labels: () => Promise<Label[]>;
+  search_labels: (query: string) => Promise<Label[]>;
+  update_label: (data: any) => Promise<void>;
+  delete_label: (id: any) => Promise<void>;
+  check_serial_numbers: (data: any) => Promise<Label[]>;
+
+  create_history: (data: any) => Promise<void>;
+  get_histories: () => Promise<any[]>;
+  search_histories: (query: string) => Promise<any[]>;
+  update_history: (data: any) => Promise<void>;
+  delete_history: (id: any) => Promise<void>;
+
+  create_storage_treshold: (value: any) => Promise<void>;
+  get_storage_treshold: () => Promise<any>;
+
+  create_excel_save_path: (path: string) => Promise<void>;
+  get_excel_save_path: () => Promise<{ path: string }>;
+
+  create_connection: (ip: any, port: any, com: any) => Promise<void>;
+  get_connections: () => Promise<any[]>;
+
+  // Add new function for raw SQL queries
+  fetchAll: (query: string, params?: any[]) => Promise<any[]>;
 }
 
 interface tcpConnection {
-  tcp_connect: (connectionDetails: any) => Promise<any>;
-  tcp_received: (callback: any) => void;
-  tcp_closed: (callback: any) => void;
-  tcp_disconnect: () => Promise<any>;
-  tcp_connected: (callback: any) => void;
-  tcp_send: (data: any) => Promise<any>;
+  tcp_connect: (connectionDetails: any) => Promise<void>;
+  tcp_disconnect: () => Promise<void>;
+  tcp_closed: (callback: any) => Promise<void>;
+  tcp_connected: (callback: any) => Promise<void>;
+  tcp_received: (callback: any) => Promise<void>;
+  set_auto_reconnect: (enabled: boolean) => Promise<void>;
 }
 
 interface excel {
-  excel_export: (data: any) => Promise<any>;
+  save_to_excel: (data: any, filePath?: string) => Promise<void>;
 }
 
 interface serial {
-  serial_com_open: (connectionDetails: any) => Promise<any>;
-  serial_received: (callback: any) => void;
-  serial_com_close: (callback: any) => void;
-  serial_com_disconnect: () => Promise<any>;
-  serial_com_send: (data: any) => Promise<any>;
-  serial_com_get: () => Promise<any>;
+  serial_com_get: () => Promise<void>;
+  serial_com_open: (port: any) => Promise<void>;
+  serial_com_close: () => Promise<void>;
+  serial_com_send: (data: any) => Promise<void>;
+  serial_com_disconnect: () => Promise<void>;
 }
 
 interface disk {
-  disk_get: (path: any) => Promise<any>;
-  disk_check_space: (path: any) => Promise<any>;
+  disk_get: (path: any) => Promise<void>;
+  disk_check_space: (path: any) => Promise<void>;
 }
 
 interface license {
@@ -140,7 +137,7 @@ interface license {
   checkMachineLicense: () => Promise<{ valid: boolean; error?: string; expiryDate?: string; }>;
 }
 
-interface Window {
+declare interface Window {
   themeMode: ThemeModeContext;
   electronWindow: ElectronWindow;
   sqlite: sqlite;

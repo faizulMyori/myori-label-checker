@@ -87,7 +87,9 @@ export default function LicenseActivationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => {
+          e.preventDefault();
+        }}  onEscapeKeyDown={(e) => e.preventDefault()} hideClose>
         <DialogHeader>
           <DialogTitle>License Activation</DialogTitle>
           <DialogDescription>

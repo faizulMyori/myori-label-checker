@@ -3,10 +3,10 @@ import os from 'os';
 import { fetchOne, executeQuery } from './db_helpers';
 
 // Get secret key from environment variable
-const SECRET_KEY = process.env.LICENSE_SECRET_KEY || 'default-key-for-development-only';
+const SECRET_KEY = '97265568622298913307852632289451';
 
 // Log a warning if using the default key in production
-if (process.env.NODE_ENV === 'production' && SECRET_KEY === 'default-key-for-development-only') {
+if (process.env.NODE_ENV === 'production' && SECRET_KEY === '97265568622298913307852632289451') {
   console.warn('WARNING: Using default license secret key in production environment!');
 }
 
