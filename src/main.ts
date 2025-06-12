@@ -18,7 +18,7 @@ import fs from "fs";
 // In production, the .env file is in the extraResources directory
 if (process.env.NODE_ENV === "production") {
   const extraResourcesPath = process.resourcesPath ? path.join(process.resourcesPath, ".env") : null;
-  
+
   if (extraResourcesPath && fs.existsSync(extraResourcesPath)) {
     dotenv.config({ path: extraResourcesPath });
     console.log("Loaded .env from extraResources:", extraResourcesPath);
@@ -188,12 +188,12 @@ autoUpdater.on('error', (err) => {
 
   const mainWindow = BrowserWindow.getFocusedWindow();
   if (mainWindow) {
-    dialog.showMessageBox(mainWindow, {
-      type: 'error',
-      title: 'Update Error',
-      message: 'An error occurred while updating the application.',
-      detail: err.message
-    });
+    // dialog.showMessageBox(mainWindow, {
+    //   type: 'error',
+    //   title: 'Update Error',
+    //   message: 'An error occurred while updating the application.',
+    //   detail: err.message
+    // });
   }
 });
 
